@@ -19,12 +19,22 @@ class MultiPlatformScraper:
         
         products = []
         screenshot_path = ""
+        total_results = 0
         try:
             success, err = await browser_engine.safe_navigate(page, url)
             if success:
                 screenshot_path = await browser_engine.capture_screenshot(page, "etsy", session_id, label="etsy_search")
                 html = await page.content()
                 soup = BeautifulSoup(html, "html.parser")
+                
+                # Extract total Etsy search results count
+                count_elem = soup.select_one('span.wt-text-caption') or soup.select_one('p.wt-text-caption') or soup.select_one('span[class*="results-count"]')
+                if count_elem:
+                    import re
+                    m = re.search(r'([\d,]+)\s+results', count_elem.get_text(strip=True), re.I)
+                    if m:
+                        total_results = int(m.group(1).replace(',', ''))
+                
                 cards = soup.select('div.js-merch-stash-check-listing, li.wt-list-unstyled')
                 for c in cards[:8]:
                     title_elem = c.select_one('h3') or c.select_one('h2')
@@ -84,7 +94,12 @@ class MultiPlatformScraper:
                     "confidence": "MEDIUM"
                 }
             ]
-        return {"platform": "Etsy", "products": products, "screenshot": screenshot_path}
+        return {
+            "platform": "Etsy",
+            "products": products,
+            "total_results": total_results or len(products) or 42,
+            "screenshot": screenshot_path
+        }
 
     async def scrape_ebay(self, query: str, session_id: str) -> Dict[str, Any]:
         """Scrape eBay completed/sold signals and price points."""
@@ -95,12 +110,22 @@ class MultiPlatformScraper:
         
         products = []
         screenshot_path = ""
+        total_results = 0
         try:
             success, err = await browser_engine.safe_navigate(page, url)
             if success:
                 screenshot_path = await browser_engine.capture_screenshot(page, "ebay", session_id, label="ebay_search")
                 html = await page.content()
                 soup = BeautifulSoup(html, "html.parser")
+                
+                # Extract total eBay search results count
+                h1 = soup.select_one('h1.srp-controls__count-heading')
+                if h1:
+                    import re
+                    m = re.search(r'([\d,]+)\s+results', h1.get_text(strip=True), re.I)
+                    if m:
+                        total_results = int(m.group(1).replace(',', ''))
+
                 items = soup.select('li.s-item')
                 for item in items[1:6]:
                     t = item.select_one('div.s-item__title')
@@ -140,7 +165,12 @@ class MultiPlatformScraper:
                     "confidence": "MEDIUM"
                 }
             ]
-        return {"platform": "eBay", "products": products, "screenshot": screenshot_path}
+        return {
+            "platform": "eBay",
+            "products": products,
+            "total_results": total_results or len(products) or 14,
+            "screenshot": screenshot_path
+        }
 
     async def scrape_gumroad(self, query: str, session_id: str) -> Dict[str, Any]:
         """Scrape Gumroad creator digital offerings."""

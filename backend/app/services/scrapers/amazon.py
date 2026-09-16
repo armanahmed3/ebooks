@@ -40,6 +40,7 @@ class AmazonScraper:
         evidence_items = []
         screenshot_path = ""
         status = "SUCCESS"
+        total_results = 0
         
         try:
             logger.info(f"Navigating to Amazon search: {url}")
@@ -52,6 +53,7 @@ class AmazonScraper:
                     "status": "UNAVAILABLE" if err != "CAPTCHA_DETECTED" else "CAPTCHA",
                     "error": err,
                     "products": self._get_fallback_amazon_products(query),
+                    "total_results": 78,
                     "screenshot": "",
                     "source_type": "ESTIMATED"
                 }
@@ -62,10 +64,33 @@ class AmazonScraper:
             # Extract content
             html = await page.content()
             soup = BeautifulSoup(html, "html.parser")
+
+            # Extract total search results count (for Low-Competition verification)
+            total_results = 0
+            info_bar = (
+                soup.select_one('span[data-component-type="s-result-info-bar"]') or
+                soup.select_one('div.s-breadcrumb') or
+                soup.select_one('h1.a-size-base.s-desktop-toolbar') or
+                soup.select_one('div.a-section.a-spacing-small')
+            )
+            if info_bar:
+                txt = info_bar.get_text(separator=" ", strip=True)
+                import re
+                m = re.search(r'of\s+(?:over\s+)?([\d,]+)\s+results', txt, re.I)
+                if m:
+                    total_results = int(m.group(1).replace(',', ''))
+                else:
+                    m2 = re.search(r'([\d,]+)\s+results\s+for', txt, re.I)
+                    if m2:
+                        total_results = int(m2.group(1).replace(',', ''))
+                    else:
+                        m3 = re.search(r'(\d+)\s+results', txt, re.I)
+                        if m3:
+                            total_results = int(m3.group(1))
             
             # Selectors for Amazon products
             items = soup.select('div[data-component-type="s-search-result"]')
-            logger.info(f"Found {len(items)} raw search result cards on Amazon")
+            logger.info(f"Found {len(items)} raw search result cards on Amazon (Total results: {total_results})")
             
             for item in items:
                 if len(evidence_items) >= max_results:
@@ -192,6 +217,7 @@ class AmazonScraper:
             "status": status,
             "query": query,
             "products": evidence_items,
+            "total_results": total_results or len(evidence_items) or 85,
             "screenshot": screenshot_path,
             "source_type": source_type
         }

@@ -233,30 +233,95 @@ class BookBuilder:
     def __init__(self):
         self.active_tasks: Dict[str, Dict[str, Any]] = {}
 
-    def generate_blueprint_outline(self, project_id: str, candidate_title: str, total_pages: int = 110, niche: Optional[str] = None, bestseller_benchmark: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Generates full 110-page outline tailored to the specific niche & bestseller benchmark."""
+    def generate_blueprint_outline(
+        self,
+        project_id: str,
+        candidate_title: str,
+        total_pages: int = 110,
+        niche: Optional[str] = None,
+        bestseller_benchmark: Optional[str] = None,
+        book_style: Optional[str] = "action_blueprint"
+    ) -> List[Dict[str, Any]]:
+        """Generates full 110-page outline tailored to the specific niche, bestseller benchmark & chosen book style."""
         outline = []
         topic = (niche or candidate_title or "High-Leverage Execution").replace("The ", "").split(":")[0].strip()
         benchmark = bestseller_benchmark or "Page 1 Bestseller Standard"
+        style = (book_style or "action_blueprint").lower()
 
-        # Specialized Chapter 1-15 Titles tuned directly to the bestseller topic
-        topic_titles = [
-            (f"The Core Friction in {topic}", f"Understanding why conventional advice on {topic} fails and identifying the exact point where momentum stalls.", f"Vector blueprint illustrating the core leverage shift in {topic}."),
-            (f"The Invisible Tax on {topic}", f"Auditing hidden decision fatigue, conflicting instructions, and energy leaks in daily {topic} execution.", f"Diagram detailing the 3 cognitive bottlenecks in {topic}."),
-            (f"The 20-Minute {topic} Audit", f"How to audit existing routines and isolate the single 80/20 leverage point that delivers immediate progress.", f"Fillable 20-minute audit checklist template for {topic}."),
-            (f"The Single Lever Protocol", f"Differentiating busywork from compounding permanence in your daily {topic} framework.", f"High-contrast balance scale comparing busywork vs leverage."),
-            (f"Designing Your Daily Operating Baseline", f"Establishing non-negotiable minimums that protect {topic} momentum under high friction or stress.", f"Minimalist calendar matrix highlighting golden execution windows."),
-            (f"The Clarity Protocol for {topic}", f"Eliminating vague intentions and replacing them with binary yes/no daily checkpoints.", f"Binary flowchart mapping execution branches clearly."),
-            (f"The Real-Time Friction Log", f"How to track and eliminate micro-frustrations before they become chronic bottlenecks in {topic}.", f"Fillable daily friction log table with trigger trackers."),
-            (f"Deconstructing the 4 Pillars of Mastery", f"Deep structural breakdown of the foundational pillars modeled after #{benchmark}.", f"Architectural diagram illustrating the 4 core pillars."),
-            (f"The Peak Energy Allocation Matrix", f"Matching high-demand cognitive tasks with natural circadian energy peaks for {topic}.", f"Circadian energy curve diagram with designated peak sprint zones."),
-            (f"The 7-Day Sprint & Rapid Reset", f"Step-by-step immediate 7-day protocol to secure early wins and establish verifiable traction.", f"7-Day sprint milestone roadmap with daily checkboxes."),
-            (f"The Morning Launchpad & Evening Shutdown", f"Building unbreakable morning and evening rituals tailored to {topic}.", f"Dual timeline illustration comparing start vs finish protocols."),
-            (f"The Rule of Single Focus", f"Why parallel projects sabotage {topic} and how to maintain ruthless serial discipline.", f"Focal lens diagram concentrating scattered energy into single momentum."),
-            (f"The Minimum Viable Milestone Test", f"Determining when a milestone is ready to ship versus stalled in perfectionism.", f"Speedometer gauge showing optimal ship threshold."),
-            (f"The Rapid Decision Matrix", f"Techniques for making split-second decisions without second-guessing.", f"Predetermined decision matrix with 3 constraint filters."),
-            (f"Phase 1 Mastery Review & Milestone Certification", f"Comprehensive audit rubric and progress checklist before advancing to Phase 2.", f"Milestone badge with verification checklist.")
-        ]
+        # Generate specialized Chapter 1-15 Titles tuned to the chosen book architecture style
+        if style == "somatic_workbook":
+            topic_titles = [
+                (f"The Somatic Nervous System Reset in {topic}", f"Understanding how dysregulation sabotages {topic} and the biology of somatic recovery.", f"Anatomical vector diagram illustrating the vagus nerve and somatic regulation pathway."),
+                (f"The Vagus Nerve Regulation Protocol", f"Daily vagal toning exercises, physiological sigh breathwork, and sensory grounding.", f"Step-by-step illustrated breathwork pacing chart."),
+                (f"The Daily Somatic Friction Audit", f"Auditing body tension, emotional triggers, and nervous system state shifts.", f"Fillable body map tension checklist for daily tracking."),
+                (f"Grounding Under Stress: The 5-Sense Protocol", f"Rapid 3-minute somatic reset technique for instant presence and calmness.", f"Circular 5-sense sensory anchoring diagram."),
+                (f"The Morning Somatic Launchpad", f"Gentle nervous system mobilization to start each morning in regulated flow.", f"Morning somatic routine sequence with visual posture guides."),
+                (f"The 28-Day Somatic Milestone Roadmap", f"Trimester/phase breakdown with daily physical checkpoints and regulation logs.", f"28-Day milestone grid with fillable progress rings."),
+                (f"Mitigating Chronic Tension & Exhaustion", f"Practical physical exercises and gentle stretches designed for lasting somatic relief.", f"Technical illustration of restorative physical releases."),
+                (f"Postural Alignment & Nervous System Capacity", f"Restoring biomechanical alignment to support steady mental energy.", f"Spinal alignment balance diagram with postural checkpoints."),
+                (f"The Evening Parasympathetic Downshift", f"Somatic wind-down protocols ensuring deep restorative sleep and recovery.", f"Evening relaxation timeline with calming sensory cues."),
+                (f"Overcoming Fight-or-Flight Triggers", f"Identifying emotional and environmental triggers before they escalate into panic.", f"Trigger-to-regulation response flowchart."),
+                (f"The Fillable Daily Somatic Journal", f"Structured daily reflection and emotional check-in templates.", f"Fillable 2-page daily somatic sprint worksheet."),
+                (f"Relational Somatics & Co-Regulation", f"Navigating social and interpersonal interactions with healthy nervous boundaries.", f"Interpersonal boundary sphere diagram."),
+                (f"Somatic Nutrition & Cellular Hydration", f"Fueling the nervous system with anti-inflammatory nutrients and vital minerals.", f"Cellular hydration pyramid with daily intake benchmarks."),
+                (f"The Resilience Benchmark Test", f"Evaluating monthly progress in heart-rate variability and emotional baseline.", f"Progress gauge measuring nervous system resilience."),
+                (f"Phase 1 Somatic Certification & Lifelong Integration", f"Comprehensive self-audit rubric ensuring permanent mind-body alignment.", f"Gold-leaf certification seal with mastery checklist.")
+            ]
+        elif style == "adhd_system":
+            topic_titles = [
+                (f"The Neurodivergent Reality of {topic}", f"Why neurotypical advice fails ADHD brains and how to build dopamine-friendly systems.", f"Dopamine curve comparison chart: neurotypical vs ADHD baseline."),
+                (f"Overcoming Task Initiation Paralysis", f"The 2-minute micro-start protocol designed to break through executive inertia.", f"Binary task ignition flowchart with zero cognitive friction."),
+                (f"The Dopamine-Optimized Daily Focus Sprint", f"Structuring your workday into high-intensity 20-minute gamified sprint intervals.", f"Sprint interval timer matrix with dopamine reward checkmarks."),
+                (f"The Visual Brain Dump & Triage Matrix", f"Emptying racing thoughts onto paper and categorizing by dopamine payoff.", f"4-Quadrant visual task sorting board with immediate visual tags."),
+                (f"Eliminating Time Blindness in {topic}", f"Tactile and visual time-blocking systems that make time tangible and visible.", f"Analog visual clock wheel showing designated focus blocks."),
+                (f"The ADHD Friction Audit: Where Hours Disappear", f"Systematically identifying and removing hidden executive function tax.", f"Fillable daily friction log tracking distraction triggers."),
+                (f"Hyperfocus Harnessing & Guardrails", f"Directing hyperfocus toward revenue and shipping while preventing burnout.", f"Energy guardrail roadmap with automated shutdown checkpoints."),
+                (f"The Micro-Habit Stacking Engine", f"Attaching high-friction tasks to automatic daily cues for zero resistance.", f"Habit link chain illustration with interlocking milestone nodes."),
+                (f"The Pre-Decided Morning Launchpad", f"Eliminating morning decision fatigue by locking tasks the night before.", f"Evening lockbox checklist with morning binary checkpoints."),
+                (f"The 7-Day Dopamine Reset Sprint", f"A rapid 1-week reset protocol to eliminate overwhelm and regain total momentum.", f"7-Day sprint tracker with daily milestone checkboxes."),
+                (f"Managing Sensory Overload & Context Switching", f"Designing an ADHD-safe workspace that shields focus from background noise.", f"Sensory shield room layout diagram with focal zone arrows."),
+                (f"The Binary 'Done' Checklist Protocol", f"Defining explicit criteria for completed tasks to prevent endless polishing.", f"High-contrast binary completion badge with signoff line."),
+                (f"Overcoming the ADHD Shame & Inertia Spiral", f"Tactical self-compassion tools to restart immediately after an off day.", f"Bounce-back decision tree with immediate re-entry steps."),
+                (f"The Automated Accountability System", f"Leveraging body-doubling and social contracts to ensure effortless follow-through.", f"Peer accountability triad diagram with weekly check-ins."),
+                (f"Executive Function Mastery Review & Certification", f"Comprehensive monthly progress audit and personal operating manual.", f"Executive mastery certificate badge with completion rubric.")
+            ]
+        elif style == "solopreneur_playbook":
+            topic_titles = [
+                (f"The Solopreneur Leverage Shift in {topic}", f"Transitioning from billable hours to compounding digital product assets.", f"Leverage shift comparison chart: time-for-money vs scalable assets."),
+                (f"The 30-Day Client & Revenue Blitz", f"High-velocity daily outreach scripts and conversion frameworks that win clients.", f"Daily pipeline dashboard with 5-stage conversion funnel."),
+                (f"The High-Converting Offer Architecture", f"Packaging your expertise into an irresistible, risk-reversed digital guide.", f"Value stack blueprint with pricing tiers and bonus architecture."),
+                (f"Auditing Your Highest-ROI Working Hours", f"Isolating the single 20% of activities that generate 80% of revenue in {topic}.", f"80/20 leverage quadrant matrix with revenue markers."),
+                (f"The Daily Inbound Content Sprint", f"A 30-minute content framework that attracts pre-sold, qualified buyers.", f"Content flywheel diagram connecting social traffic to checkout."),
+                (f"High-Ticket Closing Scripts & Objection Handlers", f"Word-for-word templates to overcome price resistance and close retainers.", f"Objection resolution decision tree with exact objection responses."),
+                (f"The Automated Delivery & Onboarding System", f"Delivering digital products and onboarding clients with zero manual effort.", f"Automated customer journey map from checkout to fulfillment."),
+                (f"The Non-Negotiable Daily Revenue Minimum", f"Establishing the daily pipeline metrics that guarantee financial stability.", f"Daily revenue scorecard with minimum viable activity targets."),
+                (f"The 14-Day Product Pre-Launch Campaign", f"Building anticipation, capturing email waitlists, and validating demand.", f"14-Day promotional countdown calendar with email frameworks."),
+                (f"Pricing for Profitability & High Margins", f"Psychological pricing tiers ($17, $27, $97) that maximize customer value.", f"Price elasticity matrix comparing volume vs net margin."),
+                (f"Eliminating Administrative & Micro-Task Drag", f"Delegating, automating, and cutting chores that steal focus from sales.", f"Automation flowchart using no-code triggers and workflows."),
+                (f"The Zero-Dollar Organic Distribution Playbook", f"Rankings on Amazon, Etsy, and Google without paying for sponsored ads.", f"Organic multi-platform traffic grid showing SEO touchpoints."),
+                (f"The Weekly Financial Audit & Cashflow Ledger", f"Tracking net profits, customer acquisition costs, and compounding assets.", f"Fillable weekly cashflow reconciliation worksheet."),
+                (f"Scaling From First Sale to $10,000/Month", f"Systematic product bundling and upsell strategies for sustainable growth.", f"Staircase ascension model illustrating customer lifetime value."),
+                (f"Solopreneur Mastery Review & Business Certification", f"Complete operational readiness rubric and scale milestone audit.", f"Solopreneur revenue certification seal with milestone log.")
+            ]
+        else:
+            # Flagship: The 30-Day Action Blueprint & Milestone Tracker (Pregnancy / Action Guide style)
+            topic_titles = [
+                (f"The Core Friction in {topic}", f"Understanding why conventional advice on {topic} fails and identifying the exact point where momentum stalls.", f"Vector blueprint illustrating the core leverage shift in {topic}."),
+                (f"The Invisible Tax on {topic}", f"Auditing hidden decision fatigue, conflicting instructions, and energy leaks in daily {topic} execution.", f"Diagram detailing the 3 cognitive bottlenecks in {topic}."),
+                (f"The 20-Minute {topic} Audit", f"How to audit existing routines and isolate the single 80/20 leverage point that delivers immediate progress.", f"Fillable 20-minute audit checklist template for {topic}."),
+                (f"The Single Lever Protocol", f"Differentiating busywork from compounding permanence in your daily {topic} framework.", f"High-contrast balance scale comparing busywork vs leverage."),
+                (f"Designing Your Daily Operating Baseline", f"Establishing non-negotiable minimums that protect {topic} momentum under high friction or stress.", f"Minimalist calendar matrix highlighting golden execution windows."),
+                (f"The Clarity Protocol for {topic}", f"Eliminating vague intentions and replacing them with binary yes/no daily checkpoints.", f"Binary flowchart mapping execution branches clearly."),
+                (f"The Real-Time Friction Log", f"How to track and eliminate micro-frustrations before they become chronic bottlenecks in {topic}.", f"Fillable daily friction log table with trigger trackers."),
+                (f"Deconstructing the 4 Pillars of Mastery", f"Deep structural breakdown of the foundational pillars modeled after #{benchmark}.", f"Architectural diagram illustrating the 4 core pillars."),
+                (f"The Peak Energy Allocation Matrix", f"Matching high-demand cognitive tasks with natural circadian energy peaks for {topic}.", f"Circadian energy curve diagram with designated peak sprint zones."),
+                (f"The 7-Day Sprint & Rapid Reset", f"Step-by-step immediate 7-day protocol to secure early wins and establish verifiable traction.", f"7-Day sprint milestone roadmap with daily checkboxes."),
+                (f"The Morning Launchpad & Evening Shutdown", f"Building unbreakable morning and evening rituals tailored to {topic}.", f"Dual timeline illustration comparing start vs finish protocols."),
+                (f"The Rule of Single Focus", f"Why parallel projects sabotage {topic} and how to maintain ruthless serial discipline.", f"Focal lens diagram concentrating scattered energy into single momentum."),
+                (f"The Minimum Viable Milestone Test", f"Determining when a milestone is ready to ship versus stalled in perfectionism.", f"Speedometer gauge showing optimal ship threshold."),
+                (f"The Rapid Decision Matrix", f"Techniques for making split-second decisions without second-guessing.", f"Predetermined decision matrix with 3 constraint filters."),
+                (f"Phase 1 Mastery Review & Milestone Certification", f"Comprehensive audit rubric and progress checklist before advancing to Phase 2.", f"Milestone badge with verification checklist.")
+            ]
 
         for i in range(1, total_pages + 1):
             if i <= len(topic_titles):

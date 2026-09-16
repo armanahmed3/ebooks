@@ -215,19 +215,48 @@ def discover_ideas(req: DiscoverIdeasRequest):
     ideas = discover_top_niche_ideas(req.query, low_competition_only=bool(req.low_competition_only))
     return {"ideas": ideas, "count": len(ideas)}
 
+class WinningTitlesRequest(BaseModel):
+    niche: str
+    category: Optional[str] = None
+
+@app.post("/api/research/winning-titles")
+def get_winning_titles(req: WinningTitlesRequest):
+    """Generates winning, highly-profitable, low-result title formulas with multi-platform verification links."""
+    from app.services.title_finder import generate_winning_low_result_titles
+    titles = generate_winning_low_result_titles(req.niche, req.category)
+    return {"titles": titles, "niche": req.niche, "count": len(titles)}
+
+class EvaluateTitleRequest(BaseModel):
+    title: str
+    session_id: Optional[str] = "live_title"
+
+@app.post("/api/research/evaluate-title-live")
+async def evaluate_title_live(req: EvaluateTitleRequest):
+    """Performs real-time live scraping across Amazon, Etsy, and eBay to return live search results count & competition verdict."""
+    from app.services.title_finder import live_evaluate_title_competition
+    result = await live_evaluate_title_competition(req.title, req.session_id)
+    return result
+
 class ForgeFromBestsellerRequest(BaseModel):
     project_id: str
     niche: str
+    winning_title: Optional[str] = None
+    winning_subtitle: Optional[str] = None
     bestseller_benchmark: Optional[str] = None
     avg_price: Optional[float] = 16.95
     best_price: Optional[float] = 17.95
     category: Optional[str] = None
+    book_style: Optional[str] = "action_blueprint"
+    tone: Optional[str] = "Empathetic, Motivational & Action-Driven"
+    trim_size: Optional[str] = "6x9"
+    cover_pattern: Optional[str] = "minimalist_luxury"
 
 @app.post("/api/research/forge-from-bestseller")
 async def forge_from_bestseller(req: ForgeFromBestsellerRequest):
     """Selects 1 niche idea and builds the complete book modeled directly on that niche's #1 bestseller."""
     from app.services.niche_registry import get_niche_benchmark
     from app.services.book_builder import generate_procedural_chapter
+    from app.services.ai_router import ai_router
     
     benchmark_data = get_niche_benchmark(req.niche)
     bestseller = req.bestseller_benchmark or benchmark_data.get("bestseller_benchmark") or f"The Complete {req.niche} Bestseller Blueprint"
@@ -247,10 +276,10 @@ async def forge_from_bestseller(req: ForgeFromBestsellerRequest):
     
     cand_id = existing["id"] if existing else f"cand_{uuid.uuid4().hex[:8]}"
     
-    # Generate Page 1 Ranker Title (e.g. "The 30-Day Female Pregnancy Action Blueprint: Daily Sprints & Milestone Tracker: The Definitive Action Blueprint")
+    # Use exact locked winning title if provided, otherwise clean fallback
     clean_niche = req.niche.strip()
-    book_title = clean_niche if ("The " in clean_niche or "Blueprint" in clean_niche or "Workbook" in clean_niche) else f"The {clean_niche} Action Blueprint: Daily Sprints & Milestone Tracker"
-    book_subtitle = f"The Definitive Step-by-Step Implementation Manual, Daily Checklists & Bestseller System"
+    book_title = (req.winning_title.strip() if req.winning_title else None) or (clean_niche if ("The " in clean_niche or "Blueprint" in clean_niche or "Workbook" in clean_niche) else f"The {clean_niche} Action Blueprint: Daily Sprints & Milestone Tracker")
+    book_subtitle = (req.winning_subtitle.strip() if req.winning_subtitle else None) or "The Definitive Step-by-Step Implementation Manual, Daily Checklists & Bestseller System"
     
     # Unlock all others, set this one locked
     cur.execute("UPDATE candidates SET is_locked = 0 WHERE project_id = ?", (req.project_id,))
@@ -288,13 +317,14 @@ async def forge_from_bestseller(req: ForgeFromBestsellerRequest):
     conn.commit()
     conn.close()
     
-    # 3. Generate Custom 110-Page Blueprint Outline
+    # 3. Generate Custom 110-Page Blueprint Outline matching chosen book style
     outline = book_builder.generate_blueprint_outline(
         project_id=req.project_id, 
         candidate_title=book_title, 
         total_pages=110,
         niche=req.niche,
-        bestseller_benchmark=bestseller
+        bestseller_benchmark=bestseller,
+        book_style=req.book_style or "action_blueprint"
     )
     book_builder.populate_ledger(req.project_id, outline)
     
@@ -305,38 +335,88 @@ async def forge_from_bestseller(req: ForgeFromBestsellerRequest):
         p_num = p["page_number"]
         p_title = p["title"]
         p_summary = p["summary"]
-        text = generate_procedural_chapter(p_num, p_title, p_summary)
-        word_count = len(text.split())
+        p_content = generate_procedural_chapter(p_num, p_title, p_summary, req.niche, bestseller)
         cur.execute(
-            """
-            UPDATE book_ledger
-            SET content = ?, word_count = ?, status = 'complete', updated_at = ?
-            WHERE project_id = ? AND page_number = ?
-            """,
-            (text, word_count, now, req.project_id, p_num)
+            "UPDATE book_ledger SET content = ?, status = 'completed', updated_at = ? WHERE project_id = ? AND page_number = ?",
+            (p_content, now, req.project_id, p_num)
         )
     conn.commit()
     conn.close()
     
-    # 5. Generate Multi-Platform Listings + Amazon Ads Launch Pack
+    # 5. Generate Full Page-1 Organic SEO Listing & Amazon Ads Matrix
     listings_data = book_builder.generate_listings(
         project_id=req.project_id,
         title=book_title,
         subtitle=book_subtitle,
         niche=req.niche,
-        avg_price=avg_p,
-        best_price=best_p
+        bestseller_benchmark=bestseller,
+        suggested_price=best_p
     )
     
+    # 6. Generate Best Seller AI Cover Art via ai_router
+    cover_data = await ai_router.generate_cover_art(
+        niche=req.niche,
+        title=book_title,
+        subtitle=book_subtitle,
+        style_pattern=req.cover_pattern or "minimalist_luxury",
+        project_id=req.project_id
+    )
+
     return {
-        "status": "FORGED",
-        "project_id": req.project_id,
+        "success": True,
         "candidate_id": cand_id,
-        "title": book_title,
+        "book_blueprint": {
+            "title": book_title,
+            "subtitle": book_subtitle,
+            "total_pages": 110,
+            "book_style": req.book_style or "action_blueprint",
+            "tone": req.tone or "Empathetic, Motivational & Action-Driven",
+            "trim_size": req.trim_size or "6x9",
+            "cover_pattern": req.cover_pattern or "minimalist_luxury",
+            "cover_url": cover_data.get("cover_url", ""),
+            "preview_url": cover_data.get("preview_url", "")
+        },
         "bestseller_benchmark": bestseller,
         "recommended_price": best_p,
         "listings": listings_data,
-        "message": f"Successfully forged complete book and Page-1 SEO listings according to #1 Best Seller '{bestseller}'!"
+        "cover": cover_data,
+        "message": f"Successfully forged complete book in '{req.book_style or 'Action Blueprint'}' style and Page-1 SEO listings according to #1 Best Seller '{bestseller}'!"
+    }
+
+class GenerateCoverRequest(BaseModel):
+    project_id: str
+    niche: str
+    title: str
+    subtitle: Optional[str] = ""
+    style_pattern: Optional[str] = "minimalist_luxury"
+
+@app.post("/api/blueprint/generate-cover")
+async def generate_book_cover(req: GenerateCoverRequest):
+    """Generates a production-ready Best Seller book cover art with AI routing."""
+    from app.services.ai_router import ai_router
+    cover_info = await ai_router.generate_cover_art(
+        niche=req.niche,
+        title=req.title,
+        subtitle=req.subtitle or "",
+        style_pattern=req.style_pattern or "minimalist_luxury",
+        project_id=req.project_id
+    )
+    return cover_info
+
+class ConfigureAIRequest(BaseModel):
+    provider: str
+    base_url: Optional[str] = None
+    api_key: Optional[str] = None
+
+@app.post("/api/setup/configure-ai")
+def configure_ai(req: ConfigureAIRequest):
+    """Configures AI provider routing (OmniRoute, FreeLLMAPI, NVIDIA, Gemini)."""
+    from app.services.ai_router import ai_router
+    ai_router.configure(req.provider, req.base_url, req.api_key)
+    return {
+        "success": True,
+        "provider": ai_router.provider,
+        "message": f"AI Engine configured to use {req.provider.upper()} router."
     }
 
 # --- Candidates & Scoring ---

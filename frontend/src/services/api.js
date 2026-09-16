@@ -94,6 +94,22 @@ export const api = {
     });
     return res.json();
   },
+  async getWinningTitles(niche, category = null) {
+    const res = await fetch(`${API_BASE}/research/winning-titles`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ niche, category })
+    });
+    return res.json();
+  },
+  async evaluateTitleLive(title, session_id = 'live_title') {
+    const res = await fetch(`${API_BASE}/research/evaluate-title-live`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, session_id })
+    });
+    return res.json();
+  },
 
   // Candidates
   async getCandidates(projectId) {
@@ -112,6 +128,32 @@ export const api = {
   // Blueprint
   async getBlueprint(projectId) {
     const res = await fetch(`${API_BASE}/blueprint/${projectId}`);
+    return res.json();
+  },
+  async generateCover(projectId, niche, title, subtitle = '', stylePattern = 'minimalist_luxury') {
+    const res = await fetch(`${API_BASE}/blueprint/generate-cover`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        project_id: projectId,
+        niche,
+        title,
+        subtitle,
+        style_pattern: stylePattern
+      })
+    });
+    return res.json();
+  },
+  async configureAI(provider, baseUrl = null, apiKey = null) {
+    const res = await fetch(`${API_BASE}/setup/configure-ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        provider,
+        base_url: baseUrl,
+        api_key: apiKey
+      })
+    });
     return res.json();
   },
 

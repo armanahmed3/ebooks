@@ -64,12 +64,25 @@ class BrowserEngine:
 
     async def create_context(self, user_agent: Optional[str] = None) -> BrowserContext:
         await self.start()
-        ua = user_agent or random.choice(USER_AGENTS)
+        ua = user_agent or "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+        stealth_headers = {
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "Sec-Ch-Ua": '"Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": '"Windows"',
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+            "Upgrade-Insecure-Requests": "1",
+        }
         context = await self._browser.new_context(
             user_agent=ua,
             viewport={"width": 1440, "height": 900},
             locale="en-US",
-            timezone_id="America/New_York"
+            timezone_id="America/New_York",
+            extra_http_headers=stealth_headers
         )
         return context
 
