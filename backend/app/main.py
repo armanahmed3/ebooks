@@ -41,11 +41,21 @@ app.mount("/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
 # --- Pydantic Models ---
 class SetupRequest(BaseModel):
     gemini_api_key: Optional[str] = ""
+    ai_provider: Optional[str] = "omniroute"
+    base_url: Optional[str] = None
+    ai_api_key: Optional[str] = None
+    ai_model: Optional[str] = None
     ai_tone: Optional[str] = "Professional, High-Utility, Direct"
     banned_words: Optional[str] = "synergy, paradigm, revolutionary, guru"
     writing_rules: Optional[str] = "Always start with the problem, prescribe one action, include a checklist."
     brand_colors: Optional[str] = "#EC4899, #831843"
     fonts: Optional[str] = "Inter, Sans-serif"
+
+class TestAIRequest(BaseModel):
+    provider: str = "omniroute"
+    base_url: Optional[str] = None
+    api_key: Optional[str] = None
+    model: Optional[str] = None
 
 class ProjectCreate(BaseModel):
     name: str
@@ -58,8 +68,6 @@ class ResearchStartRequest(BaseModel):
 
 class TitleSelectRequest(BaseModel):
     project_id: str
-    selected_title: str
-    selected_subtitle: str
 
 class BatchWriteRequest(BaseModel):
     project_id: str
@@ -83,22 +91,63 @@ def health_check():
     return {"status": "ok", "service": "EMPIRE OS", "port": PORT}
 
 # --- Setup Endpoints ---
+@app.post("/api/setup/test-ai")
+async def test_ai_provider(req: TestAIRequest):
+    """Tests live connection to OmniRoute, FreeLLMAPI, NVIDIA NIM, or Gemini."""
+    from app.services.ai_router import ai_router
+    res = await ai_router.test_provider(
+        provider=req.provider,
+        base_url=req.base_url,
+        api_key=req.api_key,
+        model=req.model
+    )
+    return res
+
 @app.post("/api/setup/test-gemini")
 async def test_gemini(req: SetupRequest):
+    from app.services.ai_router import ai_router
     if req.gemini_api_key:
         gemini_service.set_api_key(req.gemini_api_key)
-    res = await gemini_service.test_connection()
+    res = await ai_router.test_provider(
+        provider=req.ai_provider or ("nvidia" if req.gemini_api_key.startswith("nvapi-") else "gemini"),
+        base_url=req.base_url,
+        api_key=req.ai_api_key or req.gemini_api_key,
+        model=req.ai_model
+    )
     return res
 
 @app.post("/api/setup/save")
 def save_setup(req: SetupRequest):
-    # Save GEMINI_API_KEY to .env if provided
+    from app.services.ai_router import ai_router
+    prov = (req.ai_provider or "omniroute").lower().strip()
+    ai_router.configure(
+        provider=prov,
+        base_url=req.base_url,
+        api_key=req.ai_api_key or req.gemini_api_key,
+        model=req.ai_model
+    )
     if req.gemini_api_key:
         gemini_service.set_api_key(req.gemini_api_key)
-        env_file = Path(__file__).resolve().parent.parent / ".env"
+
+    env_file = Path(__file__).resolve().parent.parent / ".env"
+    try:
+        env_lines = [
+            f"AI_PROVIDER={prov}",
+            f"OMNIROUTE_BASE_URL={ai_router.omniroute_base_url}",
+            f"FREELLMAPI_BASE_URL={ai_router.freellmapi_base_url}",
+            f"AI_MODEL={ai_router.selected_model}",
+            f"PORT=8000"
+        ]
+        if req.ai_api_key:
+            env_lines.append(f"AI_API_KEY={req.ai_api_key}")
+        if req.gemini_api_key:
+            env_lines.append(f"GEMINI_API_KEY={req.gemini_api_key}")
         with open(env_file, "w", encoding="utf-8") as f:
-            f.write(f"GEMINI_API_KEY={req.gemini_api_key}\nPORT=8000\n")
-    return {"status": "saved", "message": "Settings updated successfully."}
+            f.write("\n".join(env_lines) + "\n")
+    except Exception as e:
+        logger.warning(f"Could not persist .env: {e}")
+
+    return {"status": "saved", "message": f"AI Engine configured to {prov.upper()} and settings updated successfully."}
 
 # --- Project Management ---
 @app.get("/api/projects")
@@ -407,16 +456,18 @@ class ConfigureAIRequest(BaseModel):
     provider: str
     base_url: Optional[str] = None
     api_key: Optional[str] = None
+    model: Optional[str] = None
 
 @app.post("/api/setup/configure-ai")
 def configure_ai(req: ConfigureAIRequest):
     """Configures AI provider routing (OmniRoute, FreeLLMAPI, NVIDIA, Gemini)."""
     from app.services.ai_router import ai_router
-    ai_router.configure(req.provider, req.base_url, req.api_key)
+    ai_router.configure(req.provider, req.base_url, req.api_key, req.model)
     return {
         "success": True,
         "provider": ai_router.provider,
-        "message": f"AI Engine configured to use {req.provider.upper()} router."
+        "model": ai_router.selected_model,
+        "message": f"AI Engine configured to use {req.provider.upper()} router ({ai_router.selected_model})."
     }
 
 # --- Candidates & Scoring ---

@@ -6,6 +6,19 @@ export const api = {
     const res = await fetch(`${API_BASE}/health`);
     return res.json();
   },
+  async testAI(provider = 'omniroute', baseUrl = null, apiKey = null, model = null) {
+    const res = await fetch(`${API_BASE}/setup/test-ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        provider,
+        base_url: baseUrl,
+        api_key: apiKey,
+        model
+      })
+    });
+    return res.json();
+  },
   async testGemini(gemini_api_key) {
     const res = await fetch(`${API_BASE}/setup/test-gemini`, {
       method: 'POST',
@@ -144,14 +157,15 @@ export const api = {
     });
     return res.json();
   },
-  async configureAI(provider, baseUrl = null, apiKey = null) {
+  async configureAI(provider, baseUrl = null, apiKey = null, model = null) {
     const res = await fetch(`${API_BASE}/setup/configure-ai`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         provider,
         base_url: baseUrl,
-        api_key: apiKey
+        api_key: apiKey,
+        model
       })
     });
     return res.json();
