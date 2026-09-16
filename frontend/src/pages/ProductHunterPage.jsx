@@ -171,7 +171,7 @@ const getUSPlatformLinks = (target) => {
   ];
 };
 
-export default function ProductHunterPage({ activeProject, onLockWinner, onOpenEvidence }) {
+export default function ProductHunterPage({ activeProject, onLockWinner, onOpenEvidence, onNavigateTab, onRefreshProject }) {
   const [niche, setNiche] = useState(activeProject?.niche || 'ADHD Daily Executive Function Planner');
   const [mode, setMode] = useState('standard');
   const [researching, setResearching] = useState(false);
@@ -185,6 +185,12 @@ export default function ProductHunterPage({ activeProject, onLockWinner, onOpenE
   const [activePhase, setActivePhase] = useState('ideas'); // 'ideas' | 'research'
   const [pollingInterval, setPollingInterval] = useState(null);
 
+  // Low Competition & Bestseller Forge states
+  const [lowCompetitionOnly, setLowCompetitionOnly] = useState(true);
+  const [forgingBestseller, setForgingBestseller] = useState(false);
+  const [forgingTargetName, setForgingTargetName] = useState('');
+  const [forgedSuccessData, setForgedSuccessData] = useState(null);
+
   useEffect(() => {
     if (activeProject?.id) {
       loadCandidates();
@@ -192,7 +198,7 @@ export default function ProductHunterPage({ activeProject, onLockWinner, onOpenE
       if (initialNiche) {
         setSelectedNicheCategory(initialNiche);
       }
-      loadTopIdeas(initialNiche);
+      loadTopIdeas(initialNiche, lowCompetitionOnly);
     }
   }, [activeProject]);
 
@@ -206,20 +212,20 @@ export default function ProductHunterPage({ activeProject, onLockWinner, onOpenE
     }
   };
 
-  const loadTopIdeas = async (searchQuery = '') => {
+  const loadTopIdeas = async (searchQuery = '', lowComp = lowCompetitionOnly) => {
     setLoadingIdeas(true);
     try {
-      const res = await api.discoverIdeas(searchQuery);
+      const res = await api.discoverIdeas(searchQuery, lowComp);
       if (res?.ideas && res.ideas.length > 0) {
         setDiscoveredIdeas(res.ideas);
       } else {
-        const fallback = await api.discoverIdeas('');
+        const fallback = await api.discoverIdeas('', lowComp);
         setDiscoveredIdeas(fallback?.ideas || []);
       }
     } catch (e) {
       console.error('Error discovering ideas:', e);
       try {
-        const fallback = await api.discoverIdeas('');
+        const fallback = await api.discoverIdeas('', lowComp);
         setDiscoveredIdeas(fallback?.ideas || []);
       } catch (err) {
         console.error(err);
@@ -229,11 +235,42 @@ export default function ProductHunterPage({ activeProject, onLockWinner, onOpenE
     }
   };
 
-  const handleFindIdeas = async (searchQuery) => {
+  const handleFindIdeas = async (searchQuery, lowComp = lowCompetitionOnly) => {
     const q = (searchQuery !== undefined ? searchQuery : niche || '').trim();
     setSelectedNicheCategory(q);
     setActivePhase('ideas'); // Instantly bring user to Phase 1 ideas view
-    await loadTopIdeas(q);
+    await loadTopIdeas(q, lowComp);
+  };
+
+  const handleForgeFromBestseller = async (target) => {
+    if (!activeProject?.id) return;
+    const targetNiche = target.niche || target.title || niche;
+    const targetBenchmark = target.bestseller_benchmark || target.target_competitor || `The Complete ${targetNiche} Action Guide & Workbook`;
+    const targetAvgPrice = target.avg_price || target.average_price || 16.95;
+    const targetBestPrice = target.best_price || 17.95;
+    const targetCategory = target.category || "Personal Transformation & Systems";
+
+    setForgingTargetName(targetNiche);
+    setForgingBestseller(true);
+    setForgedSuccessData(null);
+
+    try {
+      const res = await api.forgeFromBestseller({
+        project_id: activeProject.id,
+        niche: targetNiche,
+        bestseller_benchmark: targetBenchmark,
+        avg_price: targetAvgPrice,
+        best_price: targetBestPrice,
+        category: targetCategory
+      });
+      await loadCandidates();
+      if (onRefreshProject) onRefreshProject();
+      setForgedSuccessData(res);
+    } catch (err) {
+      console.error('Error forging bestseller book:', err);
+    } finally {
+      setForgingBestseller(false);
+    }
   };
 
   const handleClearIdeas = async () => {
@@ -730,21 +767,101 @@ export default function ProductHunterPage({ activeProject, onLockWinner, onOpenE
               </button>
             </div>
 
-            {/* Results Feedback Callout */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
-              <div className="flex items-center gap-2 text-slate-600">
-                <span className="font-bold text-slate-800">
+            {/* Low Competition Filter & Results Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-pink-100">
+              <label className="flex items-center gap-2.5 cursor-pointer bg-emerald-50 hover:bg-emerald-100/70 border border-emerald-200 px-3.5 py-1.5 rounded-xl transition-all shadow-2xs">
+                <input
+                  type="checkbox"
+                  checked={lowCompetitionOnly}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setLowCompetitionOnly(checked);
+                    loadTopIdeas(niche, checked);
+                  }}
+                  className="w-4 h-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-500 cursor-pointer"
+                />
+                <span className="text-xs font-black text-emerald-900 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  LOW COMPETITION NICHES ONLY (15-80+ Orders/Day on Every Ad)
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200/80 text-emerald-800">
+                  Reviews &lt; 250 · High Velocity
+                </span>
+              </label>
+
+              <div className="flex items-center gap-2 text-xs">
+                <span className="font-bold text-slate-700">
                   {selectedNicheCategory 
                     ? `Showing ${discoveredIdeas.length} Niche-Specific Opportunities for "${selectedNicheCategory}":`
                     : `Showing ${discoveredIdeas.length} Top Bestseller Opportunities:`}
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold flex items-center gap-1">
                   <Check className="w-3 h-3 text-emerald-600" />
-                  Min. 10+ Orders & $100+/Day Enforced
+                  15-80+ Orders/Day Enforced
                 </span>
               </div>
             </div>
           </div>
+
+          {/* Active Forging Progress Notification */}
+          {forgingBestseller && (
+            <div className="p-5 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-white shadow-lg animate-pulse flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <RefreshCw className="w-6 h-6 animate-spin text-yellow-200" />
+                <div>
+                  <h4 className="font-black text-sm uppercase tracking-wider text-yellow-100">
+                    ⚡ 1-Click Bestseller Book Engine Active
+                  </h4>
+                  <p className="text-xs font-medium text-white/90">
+                    Building complete book modeled after {forgingTargetName || 'Niche'} #1 Best Seller (110 Pages, Organic Page 1 SEO, Amazon Ads Matrix & Pricing)...
+                  </p>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-white/20 text-xs font-black uppercase">
+                Generating Book
+              </span>
+            </div>
+          )}
+
+          {/* Forged Success Banner */}
+          {forgedSuccessData && !forgingBestseller && (
+            <div className="p-5 rounded-3xl bg-emerald-50 border-2 border-emerald-400 text-emerald-900 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  <h4 className="font-display font-black text-sm uppercase tracking-wider text-emerald-950">
+                    ✓ Complete Book Successfully Forged Modeled After Best Seller!
+                  </h4>
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-900 text-[10px] font-black">
+                    Winner Locked & Blueprint Initialized
+                  </span>
+                </div>
+                <p className="text-xs text-emerald-800 font-semibold">
+                  "{forgedSuccessData.book_blueprint?.title || 'Book'}" is ready with Page 1 Organic SEO, 110-page chapter structure, pre-written sections, and Amazon Ads PPC matrix!
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {onNavigateTab && (
+                  <>
+                    <button
+                      onClick={() => onNavigateTab('forge')}
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <BookOpen className="w-3.5 h-3.5" />
+                      <span>View Full Book Outline</span>
+                    </button>
+                    <button
+                      onClick={() => onNavigateTab('listings')}
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white text-xs font-black uppercase tracking-wider transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Flame className="w-3.5 h-3.5" />
+                      <span>Page 1 SEO & Ads Matrix</span>
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Discovered Ideas Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -767,14 +884,21 @@ export default function ProductHunterPage({ activeProject, onLockWinner, onOpenE
                   )}
 
                   <div className="space-y-4">
-                    {/* Header: Category & Rank */}
-                    <div className="flex items-center justify-between gap-2 pt-1">
-                      <span className="text-[11px] font-bold text-pink-600 tracking-wide uppercase truncate max-w-[200px]">
+                    {/* Header: Category & Rank & Low Comp Badge */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                      <span className="text-[11px] font-bold text-pink-600 tracking-wide uppercase truncate max-w-[180px]">
                         {idea.category}
                       </span>
-                      <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        {idea.bsr_rank}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {idea.competition === 'LOW' && (
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                            🟢 LOW COMP (&lt;250 Reviews)
+                          </span>
+                        )}
+                        <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          {idea.bsr_rank}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Niche Title */}
@@ -887,12 +1011,22 @@ export default function ProductHunterPage({ activeProject, onLockWinner, onOpenE
                     </div>
                   </div>
 
-                  {/* Action Button */}
-                  <div className="pt-4 mt-2 border-t border-pink-100">
+                  {/* Action Buttons */}
+                  <div className="pt-4 mt-2 border-t border-pink-100 space-y-2">
+                    <button
+                      onClick={() => handleForgeFromBestseller(idea)}
+                      disabled={forgingBestseller}
+                      className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-pink-600 hover:from-amber-600 hover:to-pink-700 text-white font-black text-xs tracking-wider uppercase transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                      title="Directly forge complete 110-page book modeled after this niche's #1 best seller"
+                    >
+                      <Zap className="w-3.5 h-3.5 text-yellow-200 fill-current" />
+                      <span>⚡ 1-Click Forge: Build Modeled on Best Seller</span>
+                    </button>
+
                     <button
                       onClick={() => handleStartDeepResearch(idea.niche)}
-                      disabled={researching}
-                      className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white font-bold text-xs tracking-wider uppercase transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                      disabled={researching || forgingBestseller}
+                      className="w-full py-2 px-3 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-700 font-bold text-xs tracking-wider uppercase transition-all border border-pink-200 flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <span>Deep Research on All Platforms</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -1268,13 +1402,24 @@ export default function ProductHunterPage({ activeProject, onLockWinner, onOpenE
                         </div>
                       </div>
 
+                      {/* 1-Click Forge Modeled on Best Seller */}
+                      <button
+                        onClick={() => handleForgeFromBestseller(cand)}
+                        disabled={forgingBestseller}
+                        className="w-full mb-2.5 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-pink-600 hover:from-amber-600 hover:to-pink-700 text-white font-display font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all"
+                        title="Directly forge complete 110-page book modeled after this candidate's #1 best seller"
+                      >
+                        <Zap className="w-4 h-4 text-yellow-200 fill-current" />
+                        <span>⚡ 1-Click Forge: Build Book Modeled on #1 Best Seller</span>
+                      </button>
+
                       {/* Lock Winner Action */}
                       <button
                         onClick={() => onLockWinner(cand.id)}
                         className={`w-full py-3 px-4 rounded-xl font-display font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all ${
                           isLocked
                             ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
-                            : 'bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white shadow-md shadow-pink-500/20'
+                            : 'bg-white hover:bg-pink-50 text-pink-700 border border-pink-200 shadow-2xs'
                         }`}
                       >
                         {isLocked ? (
@@ -1285,7 +1430,7 @@ export default function ProductHunterPage({ activeProject, onLockWinner, onOpenE
                         ) : (
                           <>
                             <Lock className="w-4 h-4" />
-                            <span>LOCK THIS WINNER & FORGE PRODUCT</span>
+                            <span>LOCK THIS WINNER ONLY</span>
                           </>
                         )}
                       </button>

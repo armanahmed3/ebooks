@@ -78,11 +78,19 @@ export const api = {
     const res = await fetch(`${API_BASE}/research/evidence/${projectId}`);
     return res.json();
   },
-  async discoverIdeas(query = '') {
+  async discoverIdeas(query = '', low_competition_only = false) {
     const res = await fetch(`${API_BASE}/research/discover-ideas`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query })
+      body: JSON.stringify({ query, low_competition_only })
+    });
+    return res.json();
+  },
+  async forgeFromBestseller(payload) {
+    const res = await fetch(`${API_BASE}/research/forge-from-bestseller`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
     return res.json();
   },

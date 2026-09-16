@@ -124,6 +124,8 @@ export default function App() {
             activeProject={activeProject}
             onLockWinner={handleLockWinner}
             onOpenEvidence={() => setIsEvidenceOpen(true)}
+            onNavigateTab={(tab) => setCurrentTab(tab)}
+            onRefreshProject={() => activeProjectId && loadProjectDetails(activeProjectId)}
           />
         )}
 
