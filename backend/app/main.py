@@ -340,11 +340,17 @@ class VerifiedNichesRequest(BaseModel):
 
 CATEGORY_TAG_MAP = {
     "health": ["health", "somatic", "trauma", "vagus", "nursing", "pharmacology", "wellness", "body", "medical", "therapy", "clinical", "dbt", "pilates", "mobility", "physical", "nervous"],
+    "health & somatics": ["health", "somatic", "trauma", "vagus", "nursing", "pharmacology", "wellness", "body", "medical", "therapy", "clinical", "dbt", "pilates", "mobility", "physical", "nervous"],
     "productivity": ["productivity", "habit", "routine", "planner", "executive", "focus", "adhd", "12-week", "sprint", "system", "performance", "planning", "minimalist", "atomic", "organizer"],
+    "productivity & habits": ["productivity", "habit", "routine", "planner", "executive", "focus", "adhd", "12-week", "sprint", "system", "performance", "planning", "minimalist", "atomic", "organizer"],
     "finance": ["finance", "wealth", "budget", "debt", "investing", "real estate", "rental", "bookkeeping", "tax", "money", "accounting", "cash flow", "income", "solopreneur", "cash", "snowball"],
+    "wealth & finance": ["finance", "wealth", "budget", "debt", "investing", "real estate", "rental", "bookkeeping", "tax", "money", "accounting", "cash flow", "income", "solopreneur", "cash", "snowball"],
     "parenting": ["parenting", "pregnancy", "baby", "mom", "mother", "child", "family", "kids", "postpartum", "birth", "infant", "toddler", "maternal"],
+    "parenting & pregnancy": ["parenting", "pregnancy", "baby", "mom", "mother", "child", "family", "kids", "postpartum", "birth", "infant", "toddler", "maternal"],
     "mindset": ["mindset", "shadow", "journal", "transformation", "mental", "stoic", "manifestation", "emotional", "dbt", "psychology", "inner child", "anxiety", "healing", "prompts"],
-    "relationship": ["relationship", "communication", "marriage", "couple", "dating", "attachment", "intimacy", "interpersonal", "boundaries", "dear man"]
+    "mental health & mindset": ["mindset", "shadow", "journal", "transformation", "mental", "stoic", "manifestation", "emotional", "dbt", "psychology", "inner child", "anxiety", "healing", "prompts"],
+    "relationship": ["relationship", "communication", "marriage", "couple", "dating", "attachment", "intimacy", "interpersonal", "boundaries", "dear man"],
+    "relationships & communication": ["relationship", "communication", "marriage", "couple", "dating", "attachment", "intimacy", "interpersonal", "boundaries", "dear man"]
 }
 
 @app.post("/api/niches/verified")
