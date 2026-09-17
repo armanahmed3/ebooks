@@ -248,8 +248,8 @@ class AIRouterService:
                 ),
                 timeout=3.8
             )
-            elapsed = round((time.time() - start_t) * 1000)
-            txt = response.choices[0].message.content or "Connected"
+            msg_obj = response.choices[0].message
+            txt = msg_obj.content or getattr(msg_obj, "reasoning_content", None) or "Connected"
             return {
                 "success": True,
                 "provider": prov.upper(),
@@ -327,9 +327,10 @@ class AIRouterService:
                     ),
                     timeout=3.8
                 )
-                content = response.choices[0].message.content
-                if content and len(content.strip()) > 30:
-                    return content.strip()
+                msg_item = response.choices[0].message
+                content = msg_item.content or getattr(msg_item, "reasoning_content", None)
+                if content and len(str(content).strip()) > 30:
+                    return str(content).strip()
             except Exception as e:
                 logger.warning(f"Primary AI generation failed for {self.provider}: {e}. Falling over...")
 

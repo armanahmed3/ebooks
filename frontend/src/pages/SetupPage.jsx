@@ -33,8 +33,8 @@ const AI_PROVIDERS = [
     tagline: 'Google AI Studio Deep Research & Multimodal Reasoning',
     repo: 'https://aistudio.google.com',
     defaultUrl: '',
-    defaultModel: 'gemini-2.5-flash',
-    models: ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'],
+    defaultModel: 'gemini-3.6-flash',
+    models: ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'],
     requiresKey: true,
     keyPlaceholder: 'AIzaSy...',
     badge: 'GOOGLE'
@@ -45,8 +45,8 @@ const AI_PROVIDERS = [
     tagline: 'Direct Enterprise Inference via NVIDIA Cloud Functions',
     repo: 'https://build.nvidia.com',
     defaultUrl: 'https://integrate.api.nvidia.com/v1',
-    defaultModel: 'z-ai/glm-5.3',
-    models: ['z-ai/glm-5.3'],
+    defaultModel: 'z-ai/glm-5.3-flash',
+    models: ['z-ai/glm-5.3-flash', 'z-ai/glm-5.3'],
     requiresKey: true,
     keyPlaceholder: 'nvapi-...',
     badge: 'REASONING'
@@ -70,7 +70,7 @@ const AI_PROVIDERS = [
     repo: 'https://github.com/tashfeenahmed/freellmapi',
     defaultUrl: 'http://localhost:3001/v1',
     defaultModel: '@cf/black-forest-labs/flux-1-schnell',
-    models: ['@cf/black-forest-labs/flux-1-schnell', 'gpt-4o-mini', 'deepseek-chat', 'gemini-2.0-flash', 'fusion', 'auto'],
+    models: ['gemini-3.6-flash', '@cf/black-forest-labs/flux-1-schnell', 'gpt-4o-mini', 'deepseek-chat', 'gemini-2.0-flash', 'fusion', 'auto'],
     requiresKey: false,
     keyPlaceholder: 'freellmapi-4437a0543ea2707cc8fbc53d4e1b2df7bd52dc4f76e8d97f or unified key',
     badge: 'LOCAL GATEWAY'
