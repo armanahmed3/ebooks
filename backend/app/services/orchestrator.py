@@ -240,7 +240,7 @@ class ResearchOrchestrator:
             elif "300+" in s_vol_str:
                 monthly_1 = 350
 
-            daily_orders_1 = max(12, round(monthly_1 / 30.0))
+            daily_orders_1 = max(50, round(monthly_1 / 30.0))
             daily_revenue_1 = round(daily_orders_1 * avg_price, 2)
 
             cand_1_id = f"cand_{uuid.uuid4().hex[:8]}"
@@ -304,7 +304,7 @@ class ResearchOrchestrator:
             }
             
             # Opportunity 2: Fast-Track Sprint Workbook
-            daily_orders_2 = max(10, round(350 / 30.0))
+            daily_orders_2 = max(50, round(1500 / 30.0))
             daily_revenue_2 = round(daily_orders_2 * 14.50, 2)
             score_2 = calculate_opportunity_score(
                 demand_signals={"amazon_review_count": 320, "has_bestseller_badge": False},

@@ -6,6 +6,7 @@ import {
   TrendingUp, Compass, Award, Sliders, Lock
 } from 'lucide-react';
 import { api } from '../services/api';
+import { getRootBuyerKeyword } from '../pages/ProductHunterPage';
 
 const THEME_OPTIONS = [
   {
@@ -350,27 +351,30 @@ export default function BestsellerWizard({
   // Get live platform links for proof
   const getProofLinks = (cand) => {
     if (!cand) return [];
-    const kw = encodeURIComponent(cand.search_keyword || cand.niche || 'bestseller planner');
+    const rootKw = getRootBuyerKeyword(cand);
+    const kw = encodeURIComponent(rootKw);
     return [
       {
         id: 'amazon',
-        name: 'Amazon Page 1',
+        name: 'Amazon US Page 1',
         icon: '🛒',
-        url: cand.search_url || `https://www.amazon.com/s?k=${kw}&i=stripbooks`,
+        url: cand.search_url?.includes('exact-aware-popularity-rank')
+          ? cand.search_url
+          : `https://www.amazon.com/s?k=${kw}&i=stripbooks&s=exact-aware-popularity-rank`,
         badge: 'Top Organic Rank'
       },
       {
         id: 'etsy',
         name: 'Etsy Digital',
         icon: '🎨',
-        url: cand.etsy_url || `https://www.etsy.com/search?q=${kw}+digital+download`,
+        url: cand.etsy_url || `https://www.etsy.com/search?q=${kw}+digital+download&order=most_relevant`,
         badge: 'High Conversion'
       },
       {
         id: 'ebay',
         name: 'eBay Guides',
         icon: '📦',
-        url: cand.ebay_url || `https://www.ebay.com/sch/i.html?_nkw=${kw}+book`,
+        url: cand.ebay_url || `https://www.ebay.com/sch/i.html?_nkw=${kw}&_sacat=267&_sop=12`,
         badge: 'Proven Sales'
       },
       {
@@ -669,7 +673,7 @@ export default function BestsellerWizard({
                           Daily Velocity
                         </span>
                         <div className="text-base font-black text-emerald-700">
-                          {cand.daily_orders || 45}+ Orders / Day
+                          {cand.daily_orders || 54}+ Orders / Day
                         </div>
                       </div>
                       <div>
@@ -678,7 +682,7 @@ export default function BestsellerWizard({
                           Est. Daily Revenue
                         </span>
                         <div className="text-base font-black text-emerald-700">
-                          ${cand.daily_revenue || 762.75} / Day
+                          ${cand.daily_revenue || 969.30} / Day
                         </div>
                       </div>
                     </div>
