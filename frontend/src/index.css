@@ -2,84 +2,110 @@
 
 @layer base {
   body {
-    @apply bg-rose-50/40 text-slate-800 antialiased min-h-screen selection:bg-pink-200 selection:text-pink-900;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
   }
   h1, h2, h3, h4, h5, h6, .font-display {
-    font-family: 'Outfit', 'Inter', sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+    letter-spacing: -0.025em;
   }
 }
 
-/* White & Light Pink Aesthetic Tokens */
-.glass-panel-white {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(244, 114, 182, 0.2);
-  box-shadow: 0 10px 25px -5px rgba(236, 72, 153, 0.06), 0 8px 10px -6px rgba(236, 72, 153, 0.03);
+/* --- PREMIUM LIGHT SLATE BLUE & ROSE GOLD DESIGN TOKENS --- */
+:root {
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-slate-soft: #f1f5f9;
+  --border-slate: #cbd5e1;
+  --border-slate-strong: #94a3b8;
+  
+  --text-slate-heading: #0f172a;
+  --text-slate-body: #334155;
+  --text-slate-muted: #64748b;
+  
+  --rose-gold-primary: #d48b7c;
+  --rose-gold-dark: #b85d4f;
+  --rose-gold-light: #f7d6ce;
+  --rose-gold-soft-bg: #fff5f3;
+  --rose-gold-border: rgba(212, 139, 124, 0.4);
 }
 
-.glass-card-white {
-  background: #FFFFFF;
-  border: 1px solid #FCE7F3;
-  box-shadow: 0 4px 20px -2px rgba(236, 72, 153, 0.05), 0 2px 6px -1px rgba(236, 72, 153, 0.02);
+/* Metallic Rose Gold Gradient Button */
+.btn-rose-gold {
+  background: linear-gradient(135deg, #f4c2b7 0%, #d48b7c 50%, #b85d4f 100%);
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px -2px rgba(212, 139, 124, 0.45);
 }
 
-.glass-card-white:hover {
-  border-color: #F472B6;
-  box-shadow: 0 20px 30px -10px rgba(236, 72, 153, 0.15), 0 10px 10px -5px rgba(236, 72, 153, 0.04);
+.btn-rose-gold:hover {
+  background: linear-gradient(135deg, #fae0db 0%, #e29d90 50%, #c46b5d 100%);
+  box-shadow: 0 6px 20px -2px rgba(212, 139, 124, 0.6);
+  transform: translateY(-1px);
+}
+
+/* Winning Title Rose Gold Glow Button */
+.btn-winning-glow {
+  background: linear-gradient(135deg, #b85d4f 0%, #d48b7c 50%, #e29d90 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(212, 139, 124, 0.4);
+}
+
+.btn-winning-glow:hover {
+  box-shadow: 0 6px 22px rgba(212, 139, 124, 0.6);
+  transform: translateY(-1px);
+}
+
+/* Luxury Light Slate Blue Cards */
+.light-slate-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+  transition: all 0.25s ease;
+}
+
+.light-slate-card:hover {
+  border-color: rgba(212, 139, 124, 0.5);
+  box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(212, 139, 124, 0.25);
   transform: translateY(-2px);
 }
 
-.gradient-pink-btn {
-  background: linear-gradient(135deg, #EC4899 0%, #DB2777 100%);
-  transition: all 0.2s ease;
+/* Luxury Inner Metric Wells */
+.metric-well {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
 }
 
-.gradient-pink-btn:hover {
-  background: linear-gradient(135deg, #F472B6 0%, #BE185D 100%);
-  box-shadow: 0 8px 20px -4px rgba(236, 72, 153, 0.4);
+/* Rose Gold Text Accents */
+.text-rose-gold {
+  color: #b85d4f;
 }
 
-.gradient-soft-pink {
-  background: linear-gradient(135deg, #FFF1F2 0%, #FCE7F3 100%);
+.text-rose-gold-vibrant {
+  color: #c46859;
 }
 
-.gradient-rose-subtle {
-  background: linear-gradient(180deg, #FFFFFF 0%, #FFF5F7 100%);
-}
-
-/* Pulse animation for live real-time signals */
-@keyframes live-pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.4;
-    transform: scale(1.15);
-  }
-}
-
-.animate-live-pulse {
-  animation: live-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Custom sleek scrollbars */
+/* Custom Sleek Scrollbar for Light Theme */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #FFF1F2;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #F472B6;
+  background: #cbd5e1;
   border-radius: 9999px;
+  border: 1px solid #ffffff;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #EC4899;
+  background: #d48b7c;
 }

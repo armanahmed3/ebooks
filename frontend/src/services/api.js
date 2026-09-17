@@ -115,6 +115,20 @@ export const api = {
     });
     return res.json();
   },
+  async getVerifiedNiches(params = {}) {
+    const res = await fetch(`${API_BASE}/niches/verified`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: params.query || '',
+        category: params.category || 'all',
+        low_competition_only: Boolean(params.low_competition_only),
+        min_daily_orders: params.min_daily_orders !== undefined ? params.min_daily_orders : 10,
+        min_daily_revenue: params.min_daily_revenue !== undefined ? params.min_daily_revenue : 100.0
+      })
+    });
+    return res.json();
+  },
   async evaluateTitleLive(title, session_id = 'live_title') {
     const res = await fetch(`${API_BASE}/research/evaluate-title-live`, {
       method: 'POST',
