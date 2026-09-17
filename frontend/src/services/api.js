@@ -184,6 +184,23 @@ export const api = {
     });
     return res.json();
   },
+  async testImageEngine() {
+    const res = await fetch(`${API_BASE}/setup/test-image-engine`);
+    return res.json();
+  },
+  async testAI(provider, baseUrl = null, apiKey = null, model = null) {
+    const res = await fetch(`${API_BASE}/setup/test-provider`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        provider,
+        base_url: baseUrl,
+        api_key: apiKey,
+        model
+      })
+    });
+    return res.json();
+  },
 
   // Book Forge & PDF
   async getLedger(projectId) {
@@ -230,6 +247,12 @@ export const api = {
   async getOutreach(projectId) {
     const res = await fetch(`${API_BASE}/outreach/${projectId}`);
     return res.json();
+  },
+  getDownloadPdfUrl(projectId) {
+    return `${API_BASE}/book/download-pdf/${projectId}`;
+  },
+  getDownloadExcelUrl(projectId) {
+    return `${API_BASE}/outreach/download-excel/${projectId}`;
   },
 
   // Toolbox

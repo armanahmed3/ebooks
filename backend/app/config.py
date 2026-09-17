@@ -30,7 +30,9 @@ PORT = int(os.getenv("PORT", 8000))
 # AI Models
 PRIMARY_MODEL = GLM_MODEL
 DEEP_RESEARCH_MODEL = GLM_MODEL
-IMAGE_MODEL = "imagen-3.0-generate-002"
+FREELLMAPI_BASE_URL = os.getenv("FREELLMAPI_BASE_URL", "http://localhost:3001/v1")
+FREELLMAPI_API_KEY = os.getenv("FREELLMAPI_API_KEY", "freellmapi-4437a0543ea2707cc8fbc53d4e1b2df7bd52dc4f76e8d97f")
+IMAGE_MODEL = os.getenv("IMAGE_MODEL", "@cf/black-forest-labs/flux-1-schnell")
 
 # Browser delays & Rate limits
 MIN_ACTION_DELAY_SEC = 2.0

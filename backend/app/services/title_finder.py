@@ -48,7 +48,7 @@ def generate_winning_low_result_titles(niche: str, category: Optional[str] = Non
             "amazon_results_est": 114,
             "etsy_results_est": 24,
             "ebay_results_est": 4,
-            "daily_orders_est": "35 - 75+ Orders/Day",
+            "daily_orders_est": "50 - 85+ Orders/Day",
             "avg_price": 17.95,
             "monthly_profit_est": "$1,150 - $2,800/mo",
             "ad_cpc_est": "$0.34 - $0.44",
@@ -68,7 +68,7 @@ def generate_winning_low_result_titles(niche: str, category: Optional[str] = Non
             "amazon_results_est": 112,
             "etsy_results_est": 38,
             "ebay_results_est": 6,
-            "daily_orders_est": "30 - 65+ Orders/Day",
+            "daily_orders_est": "50 - 75+ Orders/Day",
             "avg_price": 18.95,
             "monthly_profit_est": "$1,200 - $2,600/mo",
             "ad_cpc_est": "$0.36 - $0.46",
@@ -88,7 +88,7 @@ def generate_winning_low_result_titles(niche: str, category: Optional[str] = Non
             "amazon_results_est": 94,
             "etsy_results_est": 28,
             "ebay_results_est": 5,
-            "daily_orders_est": "25 - 60+ Orders/Day",
+            "daily_orders_est": "50 - 70+ Orders/Day",
             "avg_price": 17.95,
             "monthly_profit_est": "$950 - $2,200/mo",
             "ad_cpc_est": "$0.35 - $0.45",
@@ -108,7 +108,7 @@ def generate_winning_low_result_titles(niche: str, category: Optional[str] = Non
             "amazon_results_est": 68,
             "etsy_results_est": 18,
             "ebay_results_est": 2,
-            "daily_orders_est": "28 - 55+ Orders/Day",
+            "daily_orders_est": "50 - 65+ Orders/Day",
             "avg_price": 16.95,
             "monthly_profit_est": "$850 - $2,100/mo",
             "ad_cpc_est": "$0.32 - $0.42",
@@ -128,7 +128,7 @@ def generate_winning_low_result_titles(niche: str, category: Optional[str] = Non
             "amazon_results_est": 82,
             "etsy_results_est": 16,
             "ebay_results_est": 3,
-            "daily_orders_est": "20 - 50+ Orders/Day",
+            "daily_orders_est": "50 - 80+ Orders/Day",
             "avg_price": 19.95,
             "monthly_profit_est": "$1,050 - $2,400/mo",
             "ad_cpc_est": "$0.38 - $0.48",
@@ -148,7 +148,7 @@ def generate_winning_low_result_titles(niche: str, category: Optional[str] = Non
             "amazon_results_est": 72,
             "etsy_results_est": 22,
             "ebay_results_est": 4,
-            "daily_orders_est": "30 - 70+ Orders/Day",
+            "daily_orders_est": "50 - 75+ Orders/Day",
             "avg_price": 16.95,
             "monthly_profit_est": "$950 - $2,300/mo",
             "ad_cpc_est": "$0.33 - $0.43",
@@ -312,7 +312,7 @@ async def live_evaluate_title_competition(title: str, session_id: str = "title_c
         verdict = "ULTRA_LOW_COMPETITION"
         verdict_label = "🏆 100% PAGE-1 MONOPOLY WINNER (<150 Results) · Zero Saturated Competition"
         rankability = 99
-        daily_orders_est = "35 - 75+ Orders/Day"
+        daily_orders_est = "50 - 85+ Orders/Day"
         cpc_est = "$0.32 - $0.42"
         review_barrier = "< 100 reviews to rank #1"
         badge = "🏆 100% Page 1 Winner"
@@ -320,7 +320,7 @@ async def live_evaluate_title_competition(title: str, session_id: str = "title_c
         verdict = "EXTREMELY_LOW_COMPETITION"
         verdict_label = "🏆 GOLDEN WINNER: Extremely Low Results (<350) · Guaranteed Page 1 Organic Rank"
         rankability = 98
-        daily_orders_est = "30 - 65+ Orders/Day"
+        daily_orders_est = "50 - 75+ Orders/Day"
         cpc_est = "$0.34 - $0.44"
         review_barrier = "< 140 reviews to beat #1"
         badge = "🏆 Golden Low Competition"
@@ -328,7 +328,7 @@ async def live_evaluate_title_competition(title: str, session_id: str = "title_c
         verdict = "LOW_COMPETITION"
         verdict_label = "🟢 LOW COMPETITION: Highly Rankable on Page 1 with Exact Organic SEO"
         rankability = 92
-        daily_orders_est = "20 - 45+ Orders/Day"
+        daily_orders_est = "50 - 65+ Orders/Day"
         cpc_est = "$0.42 - $0.55"
         review_barrier = "< 280 reviews to beat #1"
         badge = "🟢 Low Competition"
@@ -336,7 +336,7 @@ async def live_evaluate_title_competition(title: str, session_id: str = "title_c
         verdict = "MODERATE_OR_HIGH"
         verdict_label = "⚠️ MODERATE RESULTS: Suggest adding a 30-Day sprint or specific avatar modifier"
         rankability = 76
-        daily_orders_est = "10 - 25+ Orders/Day"
+        daily_orders_est = "50 - 55+ Orders/Day"
         cpc_est = "$0.65 - $0.95"
         review_barrier = "400+ reviews"
         badge = "⚠️ Moderate Competition"

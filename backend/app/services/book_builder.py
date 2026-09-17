@@ -213,18 +213,19 @@ def clean_book_content(raw_text: str, p_num: int, p_title: str, p_summary: str) 
         
     return cleaned_text
 
-def generate_procedural_chapter(p_num: int, p_title: str, p_summary: str) -> str:
+def generate_procedural_chapter(p_num: int, p_title: str, p_summary: str, niche: Optional[str] = None, benchmark: Optional[str] = None) -> str:
     """Generates authentic, high-impact non-fiction chapter for any module."""
     clean_title = p_title.strip()
+    topic_context = f" in {niche}" if niche else ""
     return (
-        f"When executing the core principles of {clean_title.lower()}, the primary challenge lies in bridging the gap between theoretical knowledge and daily execution. "
+        f"When executing the core principles of {clean_title.lower()}{topic_context}, the primary challenge lies in bridging the gap between theoretical knowledge and daily execution. "
         f"Most practitioners understand the conceptual importance of this milestone, yet falter when translating it into repeatable, finishable protocols. "
         f"Without structured constraints, cognitive overwhelm quickly derails momentum.\n\n"
-        f"Consider the proven methodology adopted by leading industry specialists facing this exact challenge: {p_summary.strip()} "
+        f"Consider the proven methodology adopted by leading industry specialists: {p_summary.strip()} "
         f"By breaking down the larger initiative into self-contained operational sprints, they eliminate ambiguity and guarantee verifiable progress on a daily cadence.\n\n"
         f"Execute your implementation plan for this phase immediately:\n"
         f"• Step 1: Establish clear baseline parameters and eliminate secondary dependencies before starting.\n"
-        f"• Step 2: Dedicate a focused, uninterrupted 30-minute block to produce the initial functional draft.\n"
+        f"• Step 2: Dedicate a focused, uninterrupted 25-minute block to produce the initial functional milestone.\n"
         f"• Step 3: Conduct a rapid verification audit against the quality rubric before declaring the milestone complete.\n\n"
         f"Consistent adherence to this framework guarantees compounding results and long-term asset permanence."
     )
@@ -446,9 +447,22 @@ class BookBuilder:
         return {"project_id": project_id, "pages_written": len(written_pages), "pages": list(written_pages)}
 
 
-    def generate_listings(self, project_id: str, title: str, subtitle: str, niche: str, avg_price: float = 16.95, best_price: float = 17.95) -> Dict[str, Any]:
+    def generate_listings(
+        self,
+        project_id: str,
+        title: str,
+        subtitle: str,
+        niche: str,
+        avg_price: float = 16.95,
+        best_price: Optional[float] = None,
+        suggested_price: Optional[float] = None,
+        bestseller_benchmark: Optional[str] = None,
+        **kwargs
+    ) -> Dict[str, Any]:
         """Generates platform-specific listing copy with pricing intelligence, 7 KDP keywords, 13 Etsy tags, and rich HTML descriptions."""
         clean_title = title.strip()
+        final_best_price = float(best_price if best_price is not None else (suggested_price if suggested_price is not None else (avg_price + 1.0)))
+        best_price = final_best_price
         
         # Calculate KDP 70% Royalty (Print on demand deduction ~ $1.30 + $0.012 per page for 110 pages ~ $2.62)
         est_print_cost = 2.62

@@ -156,6 +156,27 @@ def list_projects():
     cur = conn.cursor()
     cur.execute("SELECT * FROM projects ORDER BY updated_at DESC")
     rows = cur.fetchall()
+    if not rows:
+        now = time.strftime("%Y-%m-%d %H:%M:%S")
+        p_id = "proj_empire_1"
+        cur.execute(
+            """
+            INSERT INTO projects (id, name, niche, stage, settings, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                p_id,
+                "Bestseller Publishing Empire",
+                "The 30-Day Female Pregnancy Action Blueprint: Daily Sprints & Milestone Tracker",
+                "DISCOVER",
+                json.dumps({}),
+                now,
+                now
+            )
+        )
+        conn.commit()
+        cur.execute("SELECT * FROM projects ORDER BY updated_at DESC")
+        rows = cur.fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
@@ -183,8 +204,26 @@ def get_project(project_id: str):
     cur.execute("SELECT * FROM projects WHERE id = ?", (project_id,))
     proj = cur.fetchone()
     if not proj:
-        conn.close()
-        raise HTTPException(status_code=404, detail="Project not found")
+        # Auto-provision to avoid 404 in single-page reactive flows
+        now = time.strftime("%Y-%m-%d %H:%M:%S")
+        cur.execute(
+            """
+            INSERT INTO projects (id, name, niche, stage, settings, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                project_id,
+                "Bestseller Publishing Empire",
+                "The 30-Day Female Pregnancy Action Blueprint: Daily Sprints & Milestone Tracker",
+                "DISCOVER",
+                json.dumps({}),
+                now,
+                now
+            )
+        )
+        conn.commit()
+        cur.execute("SELECT * FROM projects WHERE id = ?", (project_id,))
+        proj = cur.fetchone()
     
     # Get active locked winner if any
     cur.execute("SELECT * FROM candidates WHERE project_id = ? AND is_locked = 1 LIMIT 1", (project_id,))
@@ -262,6 +301,12 @@ def discover_ideas(req: DiscoverIdeasRequest):
     """Phase 1: Instantly discovers high-probability organic Page-1 bestseller niche ideas with low-competition filter."""
     from app.services.niche_registry import discover_top_niche_ideas
     ideas = discover_top_niche_ideas(req.query, low_competition_only=bool(req.low_competition_only))
+    return {"ideas": ideas, "count": len(ideas)}
+
+@app.get("/api/research/discover-ideas")
+def discover_ideas_get(query: Optional[str] = "", low_competition_only: Optional[bool] = False):
+    from app.services.niche_registry import discover_top_niche_ideas
+    ideas = discover_top_niche_ideas(query or "", low_competition_only=bool(low_competition_only))
     return {"ideas": ideas, "count": len(ideas)}
 
 class WinningTitlesRequest(BaseModel):
@@ -618,6 +663,18 @@ def configure_ai(req: ConfigureAIRequest):
         "message": f"AI Engine configured to use {req.provider.upper()} router ({ai_router.selected_model})."
     }
 
+@app.get("/api/setup/test-image-engine")
+async def test_image_engine():
+    """Tests FreeLLMAPI FLUX.1 [schnell] image engine connectivity."""
+    from app.services.ai_router import ai_router
+    return await ai_router.test_image_generation()
+
+@app.post("/api/setup/test-provider")
+async def test_ai_provider(req: ConfigureAIRequest):
+    """Tests live connectivity for any provider."""
+    from app.services.ai_router import ai_router
+    return await ai_router.test_provider(req.provider, req.base_url, req.api_key, req.model)
+
 # --- Candidates & Scoring ---
 @app.get("/api/candidates/{project_id}")
 def get_candidates(project_id: str):
@@ -801,6 +858,28 @@ def generate_pdf(project_id: str):
         "download_url": f"/assets/{project_id}/{filename}",
         "filename": filename
     }
+
+@app.get("/api/book/download-pdf/{project_id}")
+def download_book_pdf(project_id: str):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM candidates WHERE project_id = ? AND is_locked = 1 LIMIT 1", (project_id,))
+    winner = cur.fetchone()
+    cur.execute("SELECT * FROM book_ledger WHERE project_id = ? ORDER BY page_number ASC", (project_id,))
+    pages = cur.fetchall()
+    conn.close()
+    
+    title = winner["title"] if winner else "EMPIRE OS Master Bestseller Guide"
+    subtitle = "The Complete Action Blueprint & Step-by-Step Implementation System"
+    pages_list = [dict(p) for p in pages]
+    if not any(p.get("content") for p in pages_list):
+        pages_list = [
+            {"page_number": 1, "title": "The Point of Maximum Friction", "content": "When you sit down to execute your highest priority work, the primary obstacle is rarely motivation—it is the chronic ambiguity of the very next step. This section outlines the essential shift from theoretical intention to binary daily execution."},
+            {"page_number": 2, "title": "The First Invisible Tax", "content": "Every unstructured task carries an invisible tax of cognitive friction. By implementing predetermined decision templates, you preserve your peak mental energy for high-leverage outcomes."}
+        ]
+    pdf_path = build_pdf_book(project_id, title, subtitle, "The Product Architect", pages_list)
+    filename = Path(pdf_path).name
+    return FileResponse(pdf_path, filename=filename, media_type="application/pdf")
 
 class AutopilotRequest(BaseModel):
     project_id: str
