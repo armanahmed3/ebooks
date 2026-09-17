@@ -12,6 +12,7 @@ import BookForgePage from './pages/BookForgePage';
 import ListingsPage from './pages/ListingsPage';
 import OutreachPage from './pages/OutreachPage';
 import DashboardPage from './pages/DashboardPage';
+import BestsellerWizard from './components/BestsellerWizard';
 
 import { api } from './services/api';
 
@@ -19,7 +20,7 @@ export default function App() {
   const [projects, setProjects] = useState([]);
   const [activeProjectId, setActiveProjectId] = useState(null);
   const [activeProject, setActiveProject] = useState(null);
-  const [currentTab, setCurrentTab] = useState('hunter');
+  const [currentTab, setCurrentTab] = useState('wizard');
   
   // Modals
   const [isEvidenceOpen, setIsEvidenceOpen] = useState(false);
@@ -112,6 +113,14 @@ export default function App() {
 
       {/* Main App Content View */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+        {currentTab === 'wizard' && (
+          <BestsellerWizard
+            activeProject={activeProject}
+            onRefreshProject={() => activeProjectId && loadProjectDetails(activeProjectId)}
+            onSwitchToAdvanced={() => setCurrentTab('hunter')}
+          />
+        )}
+
         {currentTab === 'setup' && (
           <SetupPage
             activeProject={activeProject}

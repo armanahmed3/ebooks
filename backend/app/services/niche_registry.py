@@ -1,5 +1,6 @@
 from typing import List, Dict, Any, Optional
 import random
+import urllib.parse
 from app.database import get_db
 
 # ---------------------------------------------------------------------------
@@ -1509,6 +1510,7 @@ def scrape_amazon_live_bestsellers_for_niche(query: str, max_items: int = 8) -> 
                     "search_url": f"https://www.amazon.com/s?k={encoded_q}&i=stripbooks",
                     "etsy_url": f"https://www.etsy.com/search?q={encoded_q}+digital+download",
                     "ebay_url": f"https://www.ebay.com/sch/i.html?_nkw={encoded_q}+book",
+                    "gumroad_url": f"https://gumroad.com/discover?query={encoded_q}",
                     "cross_platform_signals": {
                         "amazon": f"Live Verified #1 Organic: {comp_short[:45]}",
                         "etsy": "Live Digital Download Search Demand",
@@ -1577,6 +1579,7 @@ def scrape_amazon_live_bestsellers_for_niche(query: str, max_items: int = 8) -> 
                                     "search_url": f"https://www.amazon.com/s?k={encoded_q}&i=stripbooks",
                                     "etsy_url": f"https://www.etsy.com/search?q={encoded_q}+digital+download",
                                     "ebay_url": f"https://www.ebay.com/sch/i.html?_nkw={encoded_q}+book",
+                                    "gumroad_url": f"https://gumroad.com/discover?query={encoded_q}",
                                     "cross_platform_signals": {
                                         "amazon": f"Live Indexed Organic: {clean_comp[:35]}",
                                         "etsy": "High Search Frequency",
@@ -1706,6 +1709,7 @@ def discover_top_niche_ideas(query: str = "", low_competition_only: bool = False
             "search_url": f"https://www.amazon.com/s?k={encoded_kw}&i=stripbooks",
             "etsy_url": f"https://www.etsy.com/search?q={encoded_kw}+digital+download",
             "ebay_url": f"https://www.ebay.com/sch/i.html?_nkw={encoded_kw}+book",
+            "gumroad_url": f"https://gumroad.com/discover?query={encoded_kw}",
             "cross_platform_signals": {
                 "amazon": f"Verified Low-Competition Page 1 ({vol_str}, {daily_ord}+/day)",
                 "etsy": "Bestseller Digital Download (High Conversion)",

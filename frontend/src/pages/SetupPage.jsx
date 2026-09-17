@@ -4,28 +4,40 @@ import { api } from '../services/api';
 
 const AI_PROVIDERS = [
   {
-    id: 'omniroute',
-    name: 'OmniRoute Gateway',
-    tagline: '352 Providers · 90+ Free Tiers · ~1.51B Free Tokens/Mo',
-    repo: 'https://github.com/diegosouzapw/OmniRoute',
-    defaultUrl: 'http://localhost:20128/v1',
-    defaultModel: 'auto',
-    models: ['auto', 'auto/coding', 'auto/fast', 'auto/cheap', 'gpt-4o-mini', 'gemini-2.0-flash'],
+    id: 'pollinations',
+    name: 'Pollinations Cloud AI',
+    tagline: 'Zero-Config Cloud AI · 100% Free · GPT-4o, Mistral, Qwen · Keyless & Instant',
+    repo: 'https://pollinations.ai',
+    defaultUrl: 'https://text.pollinations.ai',
+    defaultModel: 'openai',
+    models: ['openai', 'mistral', 'deepseek', 'qwen'],
     requiresKey: false,
-    keyPlaceholder: 'Keyless out of the box (or custom token)',
-    badge: 'ZERO-CONFIG FREE'
+    keyPlaceholder: 'Keyless out of the box (No API Key Required)',
+    badge: '100% FREE CLOUD'
   },
   {
-    id: 'freellmapi',
-    name: 'FreeLLMAPI Router',
-    tagline: '34 Free Providers · 635 Free Endpoints · Single /v1 API',
-    repo: 'https://github.com/tashfeenahmed/freellmapi',
-    defaultUrl: 'http://localhost:3000/v1',
-    defaultModel: 'gpt-4o-mini',
-    models: ['gpt-4o-mini', 'deepseek-chat', 'gemini-2.0-flash', 'fusion', 'auto'],
+    id: 'synthesis',
+    name: 'Built-in High-Speed Synthesis Engine',
+    tagline: '100% Offline & Reliable · Zero Network Wait · Master Non-Fiction Prose',
+    repo: '#',
+    defaultUrl: '',
+    defaultModel: 'bestseller-neural-v2',
+    models: ['bestseller-neural-v2', 'sprint-blueprint-v1'],
     requiresKey: false,
-    keyPlaceholder: 'free-token or custom provider key',
-    badge: 'FREE POOL'
+    keyPlaceholder: 'No API Key Required (Autonomous Engine)',
+    badge: 'ZERO LATENCY'
+  },
+  {
+    id: 'gemini',
+    name: 'Google Gemini 2.5 Flash',
+    tagline: 'Google AI Studio Deep Research & Multimodal Reasoning',
+    repo: 'https://aistudio.google.com',
+    defaultUrl: '',
+    defaultModel: 'gemini-2.5-flash',
+    models: ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'],
+    requiresKey: true,
+    keyPlaceholder: 'AIzaSy...',
+    badge: 'GOOGLE'
   },
   {
     id: 'nvidia',
@@ -40,24 +52,48 @@ const AI_PROVIDERS = [
     badge: 'REASONING'
   },
   {
-    id: 'gemini',
-    name: 'Google Gemini 2.5 Flash',
-    tagline: 'Google AI Studio Deep Research & High-Speed Multimodal',
-    repo: 'https://aistudio.google.com',
-    defaultUrl: '',
-    defaultModel: 'gemini-2.5-flash',
-    models: ['gemini-2.5-flash', 'gemini-2.0-flash'],
+    id: 'omniroute',
+    name: 'OmniRoute Gateway',
+    tagline: '352 Providers · 90+ Free Tiers on localhost:20128',
+    repo: 'https://github.com/diegosouzapw/OmniRoute',
+    defaultUrl: 'http://localhost:20128/v1',
+    defaultModel: 'auto',
+    models: ['auto', 'auto/coding', 'auto/fast', 'auto/cheap', 'gpt-4o-mini', 'gemini-2.0-flash'],
+    requiresKey: false,
+    keyPlaceholder: 'free-omniroute-token or custom',
+    badge: 'LOCAL PROXY'
+  },
+  {
+    id: 'freellmapi',
+    name: 'FreeLLMAPI Router',
+    tagline: '34 Free Providers · 635 Free Endpoints on localhost:3000',
+    repo: 'https://github.com/tashfeenahmed/freellmapi',
+    defaultUrl: 'http://localhost:3000/v1',
+    defaultModel: 'gpt-4o-mini',
+    models: ['gpt-4o-mini', 'deepseek-chat', 'gemini-2.0-flash', 'fusion', 'auto'],
+    requiresKey: false,
+    keyPlaceholder: 'free-token or custom provider key',
+    badge: 'LOCAL POOL'
+  },
+  {
+    id: 'custom',
+    name: 'Custom OpenAI / Groq / Ollama',
+    tagline: 'Connect any OpenAI-compatible base URL (Groq, OpenRouter, Local Ollama)',
+    repo: '#',
+    defaultUrl: 'https://api.groq.com/openai/v1',
+    defaultModel: 'llama-3.3-70b-versatile',
+    models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'custom'],
     requiresKey: true,
-    keyPlaceholder: 'AIzaSy...',
-    badge: 'FAST'
+    keyPlaceholder: 'gsk_... or custom API key',
+    badge: 'CUSTOM'
   }
 ];
 
 export default function SetupPage({ activeProject, onNextStage }) {
-  const [selectedProvider, setSelectedProvider] = useState('omniroute');
-  const [baseUrl, setBaseUrl] = useState('http://localhost:20128/v1');
+  const [selectedProvider, setSelectedProvider] = useState('pollinations');
+  const [baseUrl, setBaseUrl] = useState('https://text.pollinations.ai');
   const [apiKey, setApiKey] = useState('');
-  const [model, setModel] = useState('auto');
+  const [model, setModel] = useState('openai');
 
   const [aiTone, setAiTone] = useState('Direct, High-Utility, Action-Oriented, No-Fluff');
   const [bannedWords, setBannedWords] = useState('synergy, paradigm, guru, revolutionary, secret sauce, foolproof');
@@ -80,6 +116,8 @@ export default function SetupPage({ activeProject, onNextStage }) {
     setModel(prov.defaultModel);
     if (prov.id === 'nvidia') {
       setApiKey(prev => prev.startsWith('nvapi-') ? prev : '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');
+    } else if (prov.id === 'synthesis' || prov.id === 'pollinations') {
+      setApiKey('');
     }
     setTestResult(null);
   };

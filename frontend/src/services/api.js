@@ -217,6 +217,12 @@ export const api = {
     const res = await fetch(`${API_BASE}/outreach/${projectId}`);
     return res.json();
   },
+  getDownloadPdfUrl(projectId) {
+    return `${API_BASE}/book/download-pdf/${projectId}`;
+  },
+  getDownloadExcelUrl(projectId) {
+    return `${API_BASE}/outreach/download-excel/${projectId}`;
+  },
 
   // Toolbox
   async checkSpam(text) {

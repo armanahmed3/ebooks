@@ -1,10 +1,11 @@
 import React from 'react';
 import { 
   Sliders, Search, Award, Compass, BookOpen, 
-  FileText, Send, LayoutDashboard, CheckCircle2, Lock 
+  FileText, Send, LayoutDashboard, CheckCircle2, Lock, Zap 
 } from 'lucide-react';
 
 export const STAGES = [
+  { id: 'wizard', title: '⚡ 1-Click Wizard', icon: Zap, requires: null },
   { id: 'setup', title: '1. Setup', icon: Sliders, requires: null },
   { id: 'hunter', title: '2. Product Hunter', icon: Search, requires: null },
   { id: 'winner', title: '3. Winner Deep-Dive', icon: Award, requires: 'candidate' },
