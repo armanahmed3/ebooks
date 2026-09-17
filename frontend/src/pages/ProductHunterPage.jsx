@@ -1562,7 +1562,7 @@ export default function ProductHunterPage({ activeProject, onLockWinner, onOpenE
                   <div className="flex flex-wrap gap-2">
                     {[
                       { id: 'omniroute', label: 'OmniRoute (Free Tokens)', defaultUrl: 'http://localhost:8080/v1' },
-                      { id: 'freellmapi', label: 'FreeLLMAPI (Free Gateway)', defaultUrl: 'http://localhost:3000/v1' },
+                      { id: 'freellmapi', label: 'FreeLLMAPI (FLUX.1 Image + 34 Providers)', defaultUrl: 'http://localhost:3001/v1' },
                       { id: 'nvidia', label: 'NVIDIA NIM (GLM-5.3)', defaultUrl: 'https://integrate.api.nvidia.com/v1' },
                       { id: 'gemini', label: 'Gemini 2.5 Flash', defaultUrl: '' }
                     ].map((provider) => (

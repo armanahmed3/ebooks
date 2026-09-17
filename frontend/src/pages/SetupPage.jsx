@@ -66,14 +66,14 @@ const AI_PROVIDERS = [
   {
     id: 'freellmapi',
     name: 'FreeLLMAPI Router',
-    tagline: '34 Free Providers · 635 Free Endpoints on localhost:3000',
+    tagline: '34 Free Providers · FLUX.1 [schnell] Image Gen on localhost:3001',
     repo: 'https://github.com/tashfeenahmed/freellmapi',
-    defaultUrl: 'http://localhost:3000/v1',
-    defaultModel: 'gpt-4o-mini',
-    models: ['gpt-4o-mini', 'deepseek-chat', 'gemini-2.0-flash', 'fusion', 'auto'],
+    defaultUrl: 'http://localhost:3001/v1',
+    defaultModel: '@cf/black-forest-labs/flux-1-schnell',
+    models: ['@cf/black-forest-labs/flux-1-schnell', 'gpt-4o-mini', 'deepseek-chat', 'gemini-2.0-flash', 'fusion', 'auto'],
     requiresKey: false,
-    keyPlaceholder: 'free-token or custom provider key',
-    badge: 'LOCAL POOL'
+    keyPlaceholder: 'freellmapi-4437a0543ea2707cc8fbc53d4e1b2df7bd52dc4f76e8d97f or unified key',
+    badge: 'LOCAL GATEWAY'
   },
   {
     id: 'custom',
@@ -269,7 +269,7 @@ export default function SetupPage({ activeProject, onNextStage }) {
                 className="w-full px-3.5 py-2.5 text-xs bg-white border border-rose-200 rounded-xl focus:outline-none focus:border-pink-500 font-mono text-slate-800"
               />
               <p className="text-[10px] text-slate-500">
-                OmniRoute runs on <code className="bg-rose-100 px-1 py-0.5 rounded text-rose-900">localhost:20128</code>. FreeLLMAPI runs on <code className="bg-rose-100 px-1 py-0.5 rounded text-rose-900">localhost:3000</code>.
+                OmniRoute runs on <code className="bg-rose-100 px-1 py-0.5 rounded text-rose-900">localhost:20128</code>. FreeLLMAPI runs on <code className="bg-rose-100 px-1 py-0.5 rounded text-rose-900">localhost:3001</code>.
               </p>
             </div>
 

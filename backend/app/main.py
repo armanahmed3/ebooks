@@ -515,6 +515,18 @@ def configure_ai(req: ConfigureAIRequest):
         "message": f"AI Engine configured to use {req.provider.upper()} router ({ai_router.selected_model})."
     }
 
+@app.get("/api/setup/test-image-engine")
+async def test_image_engine():
+    """Tests FreeLLMAPI FLUX.1 [schnell] image engine connectivity."""
+    from app.services.ai_router import ai_router
+    return await ai_router.test_image_generation()
+
+@app.post("/api/setup/test-provider")
+async def test_ai_provider(req: ConfigureAIRequest):
+    """Tests live connectivity for any provider."""
+    from app.services.ai_router import ai_router
+    return await ai_router.test_provider(req.provider, req.base_url, req.api_key, req.model)
+
 # --- Candidates & Scoring ---
 @app.get("/api/candidates/{project_id}")
 def get_candidates(project_id: str):

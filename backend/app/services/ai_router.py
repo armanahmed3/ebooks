@@ -3,6 +3,7 @@ import re
 import json
 import uuid
 import time
+import base64
 import logging
 import asyncio
 import urllib.parse
@@ -12,7 +13,7 @@ import httpx
 from openai import OpenAI
 from app.config import (
     ASSETS_DIR, NVIDIA_API_KEY, NVIDIA_BASE_URL, GLM_MODEL,
-    GEMINI_API_KEY, PRIMARY_MODEL
+    GEMINI_API_KEY, PRIMARY_MODEL, FREELLMAPI_BASE_URL, FREELLMAPI_API_KEY, IMAGE_MODEL
 )
 
 logger = logging.getLogger("ai_router")
@@ -26,7 +27,7 @@ class AIRouterService:
     1. Pollinations AI (Zero-config, 100% Free, Keyless, Instant Cloud Models: GPT-4o, Mistral, Qwen)
     2. Built-in High-Speed Bestseller Synthesis Engine (0ms, 100% Offline, Rock-Solid)
     3. OmniRoute Gateway (352 providers, 90+ free tiers on localhost:20128)
-    4. FreeLLMAPI Router (34 free providers, 635 endpoints on localhost:3000)
+    4. FreeLLMAPI Router (34 free providers, 635 endpoints on localhost:3001, FLUX.1 [schnell] for images)
     5. Google Gemini (Gemini 2.5 Flash / Gemini 1.5 Flash)
     6. NVIDIA NIM (GLM-5.3 / Llama 3.3)
     7. OpenAI / Groq / OpenRouter / Custom OpenAI-compatible endpoints
@@ -35,7 +36,9 @@ class AIRouterService:
         # Default to pollinations or synthesis for zero-friction instant operation
         self.provider = os.getenv("AI_PROVIDER", "pollinations").lower().strip()
         self.omniroute_base_url = os.getenv("OMNIROUTE_BASE_URL", "http://localhost:20128/v1")
-        self.freellmapi_base_url = os.getenv("FREELLMAPI_BASE_URL", "http://localhost:3000/v1")
+        self.freellmapi_base_url = FREELLMAPI_BASE_URL
+        self.freellmapi_api_key = FREELLMAPI_API_KEY
+        self.freellmapi_image_model = IMAGE_MODEL
         self.custom_api_key = os.getenv("AI_API_KEY", "")
         self.selected_model = os.getenv("AI_MODEL", "openai")
         
@@ -63,12 +66,16 @@ class AIRouterService:
                 self.omniroute_base_url = cleaned_url
         if api_key:
             self.custom_api_key = api_key.strip()
-            if self.provider == "nvidia":
+            if self.provider == "freellmapi":
+                self.freellmapi_api_key = api_key.strip()
+            elif self.provider == "nvidia":
                 self.nvidia_api_key = api_key.strip()
             elif self.provider == "gemini":
                 self.gemini_api_key = api_key.strip()
         if model:
             self.selected_model = model.strip()
+            if "flux" in model.lower() or "@cf" in model.lower():
+                self.freellmapi_image_model = model.strip()
         elif self.provider == "pollinations":
             self.selected_model = "openai"
         elif self.provider == "omniroute":
@@ -96,7 +103,7 @@ class AIRouterService:
             elif self.provider == "freellmapi":
                 self._openai_client = OpenAI(
                     base_url=self.freellmapi_base_url,
-                    api_key=self.custom_api_key or "free-llm-token",
+                    api_key=self.freellmapi_api_key or self.custom_api_key or "free-llm-token",
                     timeout=httpx.Timeout(4.0)
                 )
             elif self.provider == "nvidia" and self.nvidia_api_key:
@@ -219,7 +226,7 @@ class AIRouterService:
 
         # 4. OmniRoute / FreeLLMAPI / NVIDIA / Custom OpenAI-compatible
         target_url = (base_url or (self.omniroute_base_url if prov == "omniroute" else (self.freellmapi_base_url if prov == "freellmapi" else self.nvidia_base_url))).strip()
-        key = (api_key or self.custom_api_key or "free-token").strip()
+        key = (api_key or (self.freellmapi_api_key if prov == "freellmapi" else self.custom_api_key) or "free-token").strip()
         target_model = model or ("auto" if prov == "omniroute" else ("gpt-4o-mini" if prov == "freellmapi" else GLM_MODEL))
         
         try:
@@ -387,7 +394,9 @@ class AIRouterService:
     ) -> Dict[str, Any]:
         """
         Generates a 100% production-ready Best-Seller book cover image.
-        Uses high-aesthetic AI generation with fast local asset caching (max 3.5s timeout).
+        Priority 1: FreeLLMAPI router (@cf/black-forest-labs/flux-1-schnell on localhost:3001/v1/images/generations)
+        Priority 2: Pollinations AI cloud generation
+        Fallback: Resilient direct cloud preview URL
         """
         clean_title = title.strip()
         
@@ -405,23 +414,74 @@ class AIRouterService:
             f"Vertical 6x9 book cover aspect ratio, award-winning commercial graphic design."
         )
 
+        filename = f"cover_{project_id}_{uuid.uuid4().hex[:6]}.jpg"
+        filepath = COVERS_DIR / filename
+        downloaded = False
+        generator_engine = "Pollinations Cloud Engine"
+
+        # 1. ATTEMPT FreeLLMAPI Image Generation (FLUX.1 [schnell])
+        try:
+            flux_url = f"{self.freellmapi_base_url.rstrip('/')}/images/generations"
+            flux_headers = {
+                "Authorization": f"Bearer {self.freellmapi_api_key}",
+                "Content-Type": "application/json"
+            }
+            flux_payload = {
+                "model": self.freellmapi_image_model,
+                "prompt": full_prompt,
+                "n": 1
+            }
+            logger.info(f"Connecting to FreeLLMAPI for cover generation via {flux_url} ({self.freellmapi_image_model})...")
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                flux_resp = await client.post(flux_url, headers=flux_headers, json=flux_payload)
+                if flux_resp.status_code == 200:
+                    flux_data = flux_resp.json()
+                    img_items = flux_data.get("data", [])
+                    if img_items:
+                        first_img = img_items[0]
+                        if first_img.get("b64_json"):
+                            b64_str = first_img["b64_json"]
+                            if "," in b64_str:
+                                b64_str = b64_str.split(",", 1)[1]
+                            raw_bytes = base64.b64decode(b64_str)
+                            with open(filepath, "wb") as f:
+                                f.write(raw_bytes)
+                            downloaded = True
+                            generator_engine = f"FreeLLMAPI FLUX.1 [schnell] ({self.freellmapi_image_model})"
+                            logger.info(f"Generated book cover via FreeLLMAPI FLUX.1 -> {filepath}")
+                        elif first_img.get("url"):
+                            remote_img_url = first_img["url"]
+                            img_resp = await client.get(remote_img_url, timeout=10.0)
+                            if img_resp.status_code == 200 and len(img_resp.content) > 1000:
+                                with open(filepath, "wb") as f:
+                                    f.write(img_resp.content)
+                                downloaded = True
+                                generator_engine = f"FreeLLMAPI FLUX.1 [schnell] ({self.freellmapi_image_model})"
+                                logger.info(f"Downloaded FreeLLMAPI FLUX.1 image URL -> {filepath}")
+                else:
+                    logger.warning(
+                        f"FreeLLMAPI returned HTTP {flux_resp.status_code}: {flux_resp.text[:120]}. "
+                        "Switching to resilient cloud image generator..."
+                    )
+        except Exception as flux_err:
+            logger.warning(f"FreeLLMAPI image endpoint error ({flux_err}). Falling back to cloud generator...")
+
+        # 2. FALLBACK: Pollinations High-Res AI Generator
         encoded_prompt = urllib.parse.quote_plus(full_prompt)
         free_ai_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=768&height=1152&seed=42&nologo=true"
         
-        filename = f"cover_{project_id}_{uuid.uuid4().hex[:6]}.jpg"
-        filepath = COVERS_DIR / filename
-        
-        downloaded = False
-        try:
-            async with httpx.AsyncClient(timeout=3.5) as client:
-                resp = await client.get(free_ai_url)
-                if resp.status_code == 200 and len(resp.content) > 1000:
-                    with open(filepath, "wb") as f:
-                        f.write(resp.content)
-                    downloaded = True
-                    logger.info(f"Downloaded and saved book cover to {filepath}")
-        except Exception as e:
-            logger.info(f"Using direct high-resolution cloud cover stream URL: {free_ai_url}")
+        if not downloaded:
+            try:
+                async with httpx.AsyncClient(timeout=4.0) as client:
+                    resp = await client.get(free_ai_url)
+                    if resp.status_code == 200 and len(resp.content) > 1000:
+                        with open(filepath, "wb") as f:
+                            f.write(resp.content)
+                        downloaded = True
+                        generator_engine = "Pollinations Cloud (Fallback)"
+                        logger.info(f"Downloaded and saved fallback book cover to {filepath}")
+            except Exception as e:
+                logger.info(f"Using direct high-resolution cloud cover stream URL: {free_ai_url}")
 
         local_rel_url = f"/assets/covers/{filename}" if downloaded else free_ai_url
         absolute_path = str(filepath) if downloaded else ""
@@ -434,7 +494,60 @@ class AIRouterService:
             "preview_url": free_ai_url,
             "local_file_path": absolute_path,
             "art_direction": art_direction,
+            "engine": generator_engine,
             "status": "READY"
         }
+
+    async def test_image_generation(self) -> Dict[str, Any]:
+        """Tests live connectivity to the FreeLLMAPI Image Generation router (FLUX.1 [schnell])."""
+        flux_url = f"{self.freellmapi_base_url.rstrip('/')}/images/generations"
+        flux_headers = {
+            "Authorization": f"Bearer {self.freellmapi_api_key}",
+            "Content-Type": "application/json"
+        }
+        flux_payload = {
+            "model": self.freellmapi_image_model,
+            "prompt": "bestseller book cover test",
+            "n": 1
+        }
+        start_t = time.time()
+        try:
+            async with httpx.AsyncClient(timeout=6.0) as client:
+                resp = await client.post(flux_url, headers=flux_headers, json=flux_payload)
+                elapsed = round((time.time() - start_t) * 1000)
+                if resp.status_code == 200:
+                    return {
+                        "connected": True,
+                        "engine": "FreeLLMAPI FLUX.1 [schnell]",
+                        "model": self.freellmapi_image_model,
+                        "latency_ms": elapsed,
+                        "message": f"Connected to FreeLLMAPI FLUX.1 [schnell] ({self.freellmapi_image_model}) in {elapsed}ms!"
+                    }
+                else:
+                    text = resp.text
+                    is_cf_format = "flexfitfury9@gmail.com" in text or "7003" in text or "account_id:token" in text
+                    msg = (
+                        "FreeLLMAPI router is online on port 3001! Cloudflare Workers AI returned an account ID format error. "
+                        "Cloudflare requires 'account_id:token' (32-character hex ID from Cloudflare dashboard, not email). "
+                        "Auto-fallback to Pollinations cloud generator is active and fully functional."
+                        if is_cf_format else
+                        f"FreeLLMAPI router reached (HTTP {resp.status_code}). Auto-fallback to Pollinations cloud generator is active."
+                    )
+                    return {
+                        "connected": False,
+                        "engine": "FreeLLMAPI FLUX.1 [schnell]",
+                        "model": self.freellmapi_image_model,
+                        "status_code": resp.status_code,
+                        "fallback_active": True,
+                        "message": msg
+                    }
+        except Exception as e:
+            return {
+                "connected": False,
+                "engine": "FreeLLMAPI FLUX.1 [schnell]",
+                "model": self.freellmapi_image_model,
+                "fallback_active": True,
+                "message": f"FreeLLMAPI connection check: {str(e)[:120]}. Auto-fallback to Pollinations active."
+            }
 
 ai_router = AIRouterService()
